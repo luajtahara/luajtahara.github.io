@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tahará">
+<meta name="theme-color" content="#efe9ff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#120f22" media="(prefers-color-scheme: dark)">
+<title>Tahará</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{
+  --text:#1b1530; --sub:rgba(40,30,70,.62); --faint:rgba(40,30,70,.38);
+  --glass:rgba(255,255,255,.34); --glass-strong:rgba(255,255,255,.55);
+  --stroke:rgba(255,255,255,.75); --stroke-soft:rgba(255,255,255,.35);
+  --shadow:0 18px 40px rgba(60,30,120,.14), 0 2px 8px rgba(60,30,120,.06);
+  --accent:#6d4cff; --accent2:#a46bff;
+  --nida:#f2557f; --nida-bg:rgba(242,85,127,.18);
+  --clean:#18b892; --clean-bg:rgba(24,184,146,.18);
+  --mikve:#2f86ff; --mikve-bg:rgba(47,134,255,.18);
+  --ona:#f0a020; --ona-bg:rgba(240,160,32,.2);
+  --bg1:#f6f1ff; --bg2:#ffe7f0; --bg3:#e3f4ff;
+  --blob1:#c7b4ff; --blob2:#ffb8cf; --blob3:#9fe0ff;
+}
+@media (prefers-color-scheme:dark){:root{
+  --text:#f4f1ff; --sub:rgba(235,228,255,.66); --faint:rgba(235,228,255,.38);
+  --glass:rgba(40,32,70,.42); --glass-strong:rgba(60,50,100,.55);
+  --stroke:rgba(255,255,255,.22); --stroke-soft:rgba(255,255,255,.1);
+  --shadow:0 18px 40px rgba(0,0,0,.4), 0 2px 8px rgba(0,0,0,.25);
+  --accent:#9b82ff; --accent2:#c08cff;
+  --bg1:#100c20; --bg2:#1b1030; --bg3:#0b1a2a;
+  --blob1:#4b2fa8; --blob2:#7a2452; --blob3:#145a7a;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+html{background:var(--bg1)}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",system-ui,"Segoe UI",Roboto,sans-serif;
+  color:var(--text);background:linear-gradient(160deg,var(--bg1),var(--bg2) 55%,var(--bg3));
+  background-attachment:fixed;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.bg i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.75;animation:float 22s ease-in-out infinite alternate}
+.bg i:nth-child(1){width:60vmax;height:60vmax;background:var(--blob1);top:-20vmax;left:-15vmax}
+.bg i:nth-child(2){width:50vmax;height:50vmax;background:var(--blob2);top:30vh;right:-20vmax;animation-delay:-7s}
+.bg i:nth-child(3){width:45vmax;height:45vmax;background:var(--blob3);bottom:-20vmax;left:5vmax;animation-delay:-14s}
+@keyframes float{to{transform:translate(6vmax,-5vmax) scale(1.12)}}
+
+.app{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 110px)}
+
+/* ---------- Liquid Glass ---------- */
+.glass{
+  position:relative;background:var(--glass);
+  -webkit-backdrop-filter:blur(30px) saturate(190%);backdrop-filter:blur(30px) saturate(190%);
+  border:1px solid var(--stroke-soft);border-radius:28px;box-shadow:var(--shadow),inset 0 1px 0 var(--stroke),inset 0 -1px 1px rgba(255,255,255,.12);
+}
+.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(140deg,rgba(255,255,255,.45),rgba(255,255,255,0) 38%,rgba(255,255,255,0) 70%,rgba(255,255,255,.18));opacity:.55;mix-blend-mode:overlay}
+.card{padding:18px;margin-bottom:14px}
+
+header.top{display:flex;align-items:flex-start;justify-content:space-between;margin:4px 4px 16px}
+.top h1{font-size:34px;font-weight:800;letter-spacing:-.6px;margin:0}
+.top .date{font-size:15px;color:var(--sub);margin-top:4px;line-height:1.35}
+.top .date b{color:var(--text);font-weight:600}
+.round{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:0;color:var(--text);cursor:pointer}
+.round svg{width:22px;height:22px}
+
+/* hero */
+.hero{display:flex;gap:18px;align-items:center;padding:22px}
+.ring{flex:0 0 112px;height:112px;position:relative}
+.ring svg{width:112px;height:112px;transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;text-align:center;line-height:1}
+.ring .num b{font-size:34px;font-weight:800;display:block}
+.ring .num small{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.6px}
+.hero h2{margin:0 0 4px;font-size:24px;font-weight:750;letter-spacing:-.3px}
+.hero p{margin:0;color:var(--sub);font-size:15px;line-height:1.4}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:650;padding:5px 10px;border-radius:99px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.p-nida{background:var(--nida-bg);color:var(--nida)} .p-clean{background:var(--clean-bg);color:var(--clean)}
+.p-mikve{background:var(--mikve-bg);color:var(--mikve)} .p-ona{background:var(--ona-bg);color:var(--ona)}
+.p-ok{background:rgba(109,76,255,.15);color:var(--accent)}
+
+.sec-title{font-size:13px;font-weight:650;text-transform:uppercase;letter-spacing:.7px;color:var(--sub);margin:22px 8px 8px}
+.row{display:flex;align-items:center;gap:14px;padding:12px 2px}
+.row + .row{border-top:1px solid var(--stroke-soft)}
+.dot{flex:0 0 38px;height:38px;border-radius:13px;display:grid;place-items:center}
+.dot svg{width:20px;height:20px}
+.row .t{flex:1;min-width:0}
+.row .t b{display:block;font-size:16px;font-weight:620}
+.row .t span{display:block;font-size:14px;color:var(--sub);margin-top:2px;line-height:1.35}
+.row .r{font-size:13px;color:var(--faint);text-align:right;white-space:nowrap}
+
+.btn{appearance:none;border:0;font:inherit;font-size:17px;font-weight:650;border-radius:99px;padding:15px 20px;width:100%;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn svg{width:20px;height:20px;flex:0 0 20px}
+.chk svg{width:14px;height:14px}
+.btn.primary{color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 10px 24px rgba(109,76,255,.35),inset 0 1px 0 rgba(255,255,255,.45)}
+.btn.small{font-size:15px;padding:11px 16px;width:auto}
+.btn + .btn{margin-top:10px}
+.btns{display:flex;gap:10px} .btns .btn{margin:0}
+.danger{color:var(--nida)!important}
+
+/* bedikot */
+.bed{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px 10px;align-items:center}
+.bed .d{font-size:14px;color:var(--sub);font-weight:600}
+.bed .d.now{color:var(--accent)}
+.bed .dt{font-size:13px;color:var(--faint)}
+.chk{border:1.5px solid var(--stroke);background:var(--glass-strong);border-radius:99px;padding:7px 12px;font:inherit;font-size:13px;font-weight:600;color:var(--sub);cursor:pointer;display:flex;align-items:center;gap:5px}
+.chk.on{background:var(--clean);border-color:var(--clean);color:#fff}
+.chk:disabled{opacity:.35}
+
+/* calendario */
+.cal-head{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 14px}
+.cal-head h3{margin:0;font-size:21px;font-weight:750}
+.cal-head small{display:block;font-size:13px;color:var(--sub);font-weight:500;margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.wd{text-align:center;font-size:12px;font-weight:600;color:var(--faint);padding-bottom:4px}
+.wd.sh{color:var(--accent)}
+.day{aspect-ratio:1/1.12;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:pointer;border:1.5px solid transparent;font-variant-numeric:tabular-nums}
+.day .g{font-size:17px;font-weight:600}
+.day .h{font-size:11px;color:var(--sub);font-family:"Arial Hebrew","SF Hebrew",system-ui;margin-top:1px}
+.day.out{opacity:.28}
+.day.nida{background:var(--nida-bg)} .day.nida .g{color:var(--nida)}
+.day.proj{background:repeating-linear-gradient(135deg,var(--nida-bg) 0 6px,transparent 6px 11px)}
+.day.clean{background:var(--clean-bg)} .day.clean .g{color:var(--clean)}
+.day.mikve{background:var(--mikve-bg)} .day.mikve .g{color:var(--mikve)}
+.day.today{border-color:var(--accent)}
+.day.sel{background:var(--glass-strong);box-shadow:inset 0 0 0 2px var(--accent)}
+.day .marks{position:absolute;bottom:5px;display:flex;gap:3px}
+.day .marks i{width:5px;height:5px;border-radius:50%}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:13px;color:var(--sub);margin-top:14px;padding:0 4px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+
+/* tab bar */
+nav.tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 14px);display:flex;gap:4px;padding:6px;border-radius:99px;z-index:20}
+nav.tabs button{border:0;background:none;font:inherit;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;padding:8px 18px;border-radius:99px;cursor:pointer;min-width:84px;transition:all .25s}
+nav.tabs button svg{width:24px;height:24px}
+nav.tabs button.on{color:var(--accent);background:var(--glass-strong);box-shadow:inset 0 1px 0 var(--stroke),0 2px 8px rgba(0,0,0,.06)}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(20,10,40,.28);z-index:40;opacity:0;transition:opacity .3s}
+.scrim.show{opacity:1}
+.sheet{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:560px;max-height:92vh;overflow:auto;z-index:41;
+  border-radius:34px 34px 0 0;padding:10px 20px calc(env(safe-area-inset-bottom) + 24px);transform:translateY(105%);transition:transform .38s cubic-bezier(.2,.9,.25,1);
+  background:var(--glass-strong);-webkit-backdrop-filter:blur(40px) saturate(200%);backdrop-filter:blur(40px) saturate(200%)}
+.sheet.show{transform:none}
+.grab{width:40px;height:5px;border-radius:9px;background:var(--faint);margin:0 auto 14px}
+.sheet h3{font-size:22px;margin:0 0 4px;font-weight:750}
+.sheet .lead{color:var(--sub);font-size:15px;margin:0 0 16px;line-height:1.4}
+label.f{display:block;font-size:13px;font-weight:650;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin:16px 4px 8px}
+input[type=date],input[type=text],input[type=number]{width:100%;font:inherit;font-size:17px;color:var(--text);padding:14px 16px;border-radius:16px;border:1px solid var(--stroke-soft);background:var(--glass);-webkit-appearance:none;appearance:none;min-height:52px}
+.seg{display:flex;padding:4px;border-radius:16px;background:var(--glass);border:1px solid var(--stroke-soft)}
+.seg button{flex:1;border:0;background:none;font:inherit;font-size:15px;font-weight:600;color:var(--sub);padding:11px 8px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.seg button.on{background:var(--glass-strong);color:var(--text);box-shadow:0 2px 10px rgba(0,0,0,.1),inset 0 1px 0 var(--stroke)}
+.seg button svg{width:18px;height:18px}
+.hint{font-size:14px;color:var(--sub);margin:10px 4px 0;line-height:1.45}
+.hint b{color:var(--text)}
+.he{font-family:"Arial Hebrew","SF Hebrew",system-ui;direction:rtl;unicode-bidi:isolate}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 2px}
+.sw + .sw{border-top:1px solid var(--stroke-soft)}
+.sw div b{display:block;font-size:16px;font-weight:600} .sw div span{font-size:13px;color:var(--sub)}
+.toggle{flex:0 0 52px;height:32px;border-radius:99px;background:var(--faint);border:0;position:relative;cursor:pointer;transition:background .2s}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .25s}
+.toggle.on{background:var(--clean)} .toggle.on::after{transform:translateX(20px)}
+.note{font-size:13px;color:var(--sub);line-height:1.5;padding:14px 16px}
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 12px);transform:translate(-50%,-150%);z-index:60;padding:12px 18px;border-radius:99px;font-size:15px;font-weight:600;transition:transform .35s cubic-bezier(.2,.9,.25,1)}
+.toast.show{transform:translate(-50%,0)}
+.empty-illu{font-size:15px;color:var(--sub);line-height:1.5}
+.fade{animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}}
+</style>
+</head>
+<body>
+<div class="bg"><i></i><i></i><i></i></div>
+<div class="app" id="app"></div>
+<nav class="tabs glass" id="tabs">
+  <button data-tab="hoy" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/></svg>Hoy</button>
+  <button data-tab="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Calendario</button>
+  <button data-tab="hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/><path d="M12 8v4l3 2"/></svg>Historial</button>
+</nav>
+<div class="toast glass" id="toast"></div>
+
+<script src="logic.js"></script>
+<script>
+(function(){
+'use strict';
+const T = window.TL;
+const KEY = 'tahara.v1';
+
+// ---------------- Estado ----------------
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)) || null; } catch(e) { S = null; }
+if (!S) S = { cycles: [], settings: {} };
+S.settings = Object.assign({}, T.DEFAULTS, S.settings);
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+function sorted(){ return S.cycles.slice().sort((a,b)=> a.onset < b.onset ? -1 : 1); }
+
+let tab = 'hoy';
+let calMonth = T.today().slice(0,7);
+let selDay = T.today();
+
+// ---------------- Formatos ----------------
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const fShort = s => { const d = T.parse(s); return cap(d.toLocaleDateString('es-AR',{weekday:'short'}).replace('.','')) + ' ' + d.getDate() + '/' + (d.getMonth()+1); };
+const fLong = s => cap(T.parse(s).toLocaleDateString('es-AR',{weekday:'long', day:'numeric', month:'long'}));
+const hebShort = s => { const h = T.heb(s); return h.day + ' ' + h.month; };
+const hebHe = s => { const h = T.heb(s); return T.gematria(h.day) + ' ' + h.monthHe; };
+function shkia(s){ const d = T.sunset(s, S.settings.lat, S.settings.lng); return d ? d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hourCycle:'h23'}) : '—'; }
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const ICON = {
+  drop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
+  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>',
+  wave:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9c3 0 3-2 6-2s3 2 6 2 3-2 6-2M3 15c3 0 3-2 6-2s3 2 6 2 3-2 6-2"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  left:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  right:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
+};
+const dot = (cls, icon) => `<div class="dot" style="background:var(--${cls}-bg);color:var(--${cls})">${ICON[icon]}</div>`;
+
+function ring(frac, color, big, small){
+  const r = 48, C = 2*Math.PI*r, f = Math.max(0, Math.min(1, frac));
+  return `<div class="ring"><svg viewBox="0 0 112 112"><circle cx="56" cy="56" r="${r}" fill="none" stroke="var(--stroke-soft)" stroke-width="10"/>
+  <circle cx="56" cy="56" r="${r}" fill="none" stroke="${color}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*f} ${C}"/></svg>
+  <div class="num"><div><b>${big}</b><small>${small}</small></div></div></div>`;
+}
+
+// Descripción de una oná
+function onahText(o){
+  if (!o.hd) return o.note || '';
+  if (o.onah === 'night') return `Noche del ${fShort(o.gDate)} (desde la shkiá ${shkia(o.gDate)}) hasta el amanecer`;
+  return `Día ${fShort(o.hd)}, del amanecer a la shkiá (${shkia(o.hd)})`;
+}
+
+// ---------------- Pantalla: Hoy ----------------
+function viewHoy(){
+  const cy = sorted(), t = T.today(), st = T.status(cy, S.settings, t);
+  let h = '';
+  if (st.phase === 'empty'){
+    h += `<div class="glass card hero fade" style="flex-direction:column;align-items:flex-start">
+      <span class="pill p-ok">Bienvenida</span>
+      <h2>Todo en un solo lugar</h2>
+      <p>Registrá cuándo empezó el período y la app calcula el hefsek tahará, los siete días limpios, la noche de mikve y las onot perishá, con fecha hebrea y gregoriana.</p>
+    </div>
+    <button class="btn primary" data-act="new">${ICON.plus} Registrar inicio del período</button>
+    <p class="hint" style="text-align:center;margin-top:14px">Los datos quedan guardados sólo en este teléfono.</p>`;
+    return h;
+  }
+  const c = st.cycle, ci = st.info;
+
+  if (st.phase === 'nida'){
+    const days = S.settings.minDays;
+    h += `<div class="glass card hero fade">${ring(Math.min(st.day,days)/days,'var(--nida)',st.day,'día')}
+      <div><span class="pill p-nida">Nidá</span><h2>Día ${st.day}</h2>
+      <p>Empezó ${c.onah==='night'?'de noche':'de día'} el ${fShort(c.onset)}.</p></div></div>`;
+    h += `<div class="sec-title">Próximo paso</div><div class="glass card" style="padding:4px 16px">
+      <div class="row">${dot('clean','check')}<div class="t"><b>Hefsek tahará</b>
+      <span>${st.canHefsek ? 'Ya se puede hacer' : 'A partir del ' + fLong(ci.earliestHefsek)}, antes de la shkiá (${shkia(st.canHefsek ? t : ci.earliestHefsek)})</span></div></div></div>`;
+    h += `<button class="btn primary" data-act="hefsek">${ICON.check} Registrar hefsek tahará</button>
+      <button class="btn glass" data-act="edit" data-id="${c.id}">Corregir el inicio</button>`;
+  }
+  else if (st.phase === 'hefsek'){
+    h += `<div class="glass card hero fade">${ring(0,'var(--clean)','0','de 7')}
+      <div><span class="pill p-clean">Hefsek hecho</span><h2>Mañana empieza el día 1</h2>
+      <p>Los siete días limpios van del ${fShort(ci.clean[0])} al ${fShort(ci.clean[6])}.</p></div></div>`;
+    h += mikveCard(ci) + bedikotCard(c, ci, t) + `<button class="btn glass" data-act="stain">Volví a ver / hubo una mancha</button>`;
+  }
+  else if (st.phase === 'shiva'){
+    h += `<div class="glass card hero fade">${ring(st.day/7,'var(--clean)',st.day,'de 7')}
+      <div><span class="pill p-clean">Shivá nekiím</span><h2>${st.tonight ? 'Hoy a la noche: mikve' : 'Día ' + st.day + ' de 7'}</h2>
+      <p>${st.tonight ? 'Último día limpio. La tevilá es esta noche, después de tzet hakojavim.' : 'Faltan ' + (7-st.day) + ' día' + (7-st.day===1?'':'s') + ' para la mikve.'}</p></div></div>`;
+    h += bedikotCard(c, ci, t) + mikveCard(ci);
+    if (st.tonight) h += `<button class="btn primary" data-act="mikveDone">${ICON.wave} Ya fui a la mikve</button>`;
+    h += `<button class="btn glass" data-act="stain">Volví a ver / hubo una mancha</button>`;
+  }
+  else if (st.phase === 'mikvePending'){
+    h += `<div class="glass card hero fade">${ring(1,'var(--mikve)',ICON.wave.replace('<svg','<svg style="width:34px;height:34px"'),'')}
+      <div><span class="pill p-mikve">Mikve</span><h2>¿Ya fuiste a la mikve?</h2>
+      <p>La noche de mikve era el ${fShort(ci.mikve)}. Confirmalo para seguir con el calendario.</p></div></div>
+      <button class="btn primary" data-act="mikveDone">${ICON.check} Sí, ya fui</button>`;
+  }
+  else if (st.phase === 'tehora'){
+    const next = T.onot(cy, S.settings).find(o => o.gDate && T.diff(o.gDate, t) >= 0);
+    const n = next ? T.diff(next.gDate, t) : null;
+    h += `<div class="glass card hero fade">${ring(1,'var(--accent)', n===null?'—':n, n===1?'día':'días')}
+      <div><span class="pill p-ok">Tehorá</span><h2>${n===0 ? 'Hoy hay oná' : 'Todo en orden'}</h2>
+      <p>${next ? (n===0 ? 'Hoy toca separarse en la oná indicada abajo.' : 'Próxima oná perishá en ' + n + ' día' + (n===1?'':'s') + '.') : 'No hay onot pendientes.'}</p></div></div>`;
+  }
+  if (st.phase !== 'nida') h += onotCard(cy, t);
+  if (st.phase === 'tehora' || st.phase === 'mikvePending')
+    h += `<button class="btn primary" data-act="new" style="margin-top:6px">${ICON.drop} Registrar nuevo período</button>`;
+  return h;
+}
+
+function mikveCard(ci){
+  return `<div class="sec-title">Mikve</div><div class="glass card" style="padding:4px 16px"><div class="row">${dot('mikve','wave')}
+    <div class="t"><b>Noche del ${fLong(ci.mikve)}</b><span>Después de tzet hakojavim · ${hebShort(T.add(ci.mikve,1))} por la noche</span></div></div></div>`;
+}
+
+function bedikotCard(c, ci, t){
+  const b = c.bedikot || {};
+  let rows = '';
+  ci.clean.forEach((s,i) => {
+    const n = i+1, future = T.diff(s,t) > 0, now = s === t;
+    rows += `<div class="d ${now?'now':''}">Día ${n}</div><div class="dt">${fShort(s)}</div>
+      <button class="chk ${b[n+'m']?'on':''}" data-act="bed" data-k="${n}m" ${future?'disabled':''}>${b[n+'m']?ICON.check.replace('<svg','<svg width=14 height=14'):''}Mañana</button>
+      <button class="chk ${b[n+'t']?'on':''}" data-act="bed" data-k="${n}t" ${future?'disabled':''}>${b[n+'t']?ICON.check.replace('<svg','<svg width=14 height=14'):''}Tarde</button>`;
+  });
+  const done = Object.values(b).filter(Boolean).length;
+  return `<div class="sec-title">Bedikot · ${done} de 14</div><div class="glass card"><div class="bed">${rows}</div>
+    <p class="hint" style="margin:12px 0 0">Si alguna bedika salió con duda, guardá el paño y consultá con el rav.</p></div>`;
+}
+
+function onotCard(cy, t){
+  const list = T.onot(cy, S.settings);
+  if (!list.length) return '';
+  let h = `<div class="sec-title">Onot perishá</div><div class="glass card" style="padding:4px 16px">`;
+  list.forEach(o => {
+    const past = o.gDate && T.diff(o.gDate, t) < 0;
+    h += `<div class="row" style="${past?'opacity:.45':''}">${dot('ona', o.onah==='night'?'moon':'sun')}
+      <div class="t"><b>${esc(o.label)}</b><span>${onahText(o)}</span></div>
+      <div class="r">${o.hd ? hebShort(o.hd) + '<br><span class="he">' + hebHe(o.hd) + '</span>' : ''}</div></div>`;
+  });
+  return h + `</div>`;
+}
+
+// ---------------- Pantalla: Calendario ----------------
+function viewCal(){
+  const cy = sorted(), mk = T.marks(cy, S.settings), t = T.today();
+  const [y,m] = calMonth.split('-').map(Number);
+  const first = new Date(y, m-1, 1, 12), startW = first.getDay();
+  const start = T.add(T.iso(first), -startW);
+  const last = new Date(y, m, 0, 12);
+  const weeks = Math.ceil((startW + last.getDate())/7);
+  const h1 = T.heb(T.iso(first)), h2 = T.heb(T.iso(last));
+  const hebRange = h1.key===h2.key ? `${h1.month} ${h1.year}` : `${h1.month} – ${h2.month} ${h2.year}`;
+  const title = cap(first.toLocaleDateString('es-AR',{month:'long'})) + ' ' + y;
+  let g = ['D','L','M','M','J','V','S'].map((d,i)=>`<div class="wd ${i===6?'sh':''}">${i===6?'Sh':d}</div>`).join('');
+  for (let i=0;i<weeks*7;i++){
+    const s = T.add(start,i), x = mk[s] || {onot:[]}, inM = +s.slice(5,7) === m;
+    let cls = 'day';
+    if (!inM) cls += ' out';
+    if (x.mikve) cls += ' mikve'; else if (x.clean) cls += ' clean'; else if (x.nida) cls += x.projected ? ' proj' : ' nida';
+    if (s===t) cls += ' today';
+    if (s===selDay) cls += ' sel';
+    let dots = '';
+    if (x.onot.length) dots += '<i style="background:var(--ona)"></i>';
+    if (x.start) dots += '<i style="background:var(--nida)"></i>';
+    if (x.hefsek || x.hefsekFrom) dots += '<i style="background:var(--clean)"></i>';
+    g += `<div class="${cls}" data-act="sel" data-d="${s}"><span class="g">${+s.slice(8)}</span><span class="h">${T.gematria(T.heb(s).day)}</span><span class="marks">${dots}</span></div>`;
+  }
+  let h = `<div class="glass card fade"><div class="cal-head">
+    <button class="round glass" data-act="mprev">${ICON.left}</button>
+    <div style="text-align:center"><h3>${title}</h3><small>${hebRange}</small></div>
+    <button class="round glass" data-act="mnext">${ICON.right}</button></div>
+    <div class="grid">${g}</div>
+    <div class="legend"><span><i style="background:var(--nida)"></i>Nidá</span><span><i style="background:var(--clean)"></i>Días limpios</span>
+    <span><i style="background:var(--mikve)"></i>Mikve</span><span><i style="background:var(--ona);border-radius:50%"></i>Oná</span></div></div>`;
+  h += dayDetail(selDay, mk[selDay] || {onot:[]});
+  if (calMonth !== t.slice(0,7)) h += `<button class="btn glass" data-act="mtoday">Volver a hoy</button>`;
+  return h;
+}
+
+function dayDetail(s, x){
+  let rows = '';
+  if (x.start) rows += `<div class="row">${dot('nida','drop')}<div class="t"><b>Inicio del período</b><span>${x.startNight?'De noche (después de la shkiá)':'De día'}</span></div></div>`;
+  else if (x.nida) rows += `<div class="row">${dot('nida','drop')}<div class="t"><b>${x.projected?'Nidá (estimado)':'Nidá'}</b><span>${x.projected?'Hasta que se haga el hefsek':'Separados'}</span></div></div>`;
+  if (x.hefsekFrom) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Primer día posible para el hefsek</b><span>Antes de la shkiá (${shkia(s)})</span></div></div>`;
+  if (x.hefsek) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Hefsek tahará</b><span>Antes de la shkiá (${shkia(s)})</span></div></div>`;
+  if (x.clean) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Día limpio ${x.clean} de 7</b><span>Bedikot a la mañana y a la tarde</span></div></div>`;
+  if (x.mikve) rows += `<div class="row">${dot('mikve','wave')}<div class="t"><b>Noche de mikve</b><span>Después de tzet hakojavim</span></div></div>`;
+  x.onot.forEach(o => rows += `<div class="row">${dot('ona',o.onah==='night'?'moon':'sun')}<div class="t"><b>${esc(o.label)}</b><span>${onahText(o)}</span></div></div>`);
+  return `<div class="glass card fade" style="padding:16px 16px 6px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:0 2px 6px">
+      <b style="font-size:18px">${fLong(s)}</b><span class="he" style="color:var(--sub);font-size:15px">${hebHe(s)}</span></div>
+    <div style="color:var(--sub);font-size:14px;padding:0 2px 8px">${T.hebLabel(s)} · shkiá ${shkia(s)}<br>Desde la shkiá ya es ${hebShort(T.add(s,1))}</div>
+    ${rows}</div>`;
+}
+
+// ---------------- Pantalla: Historial ----------------
+function viewHist(){
+  const cy = sorted();
+  if (!cy.length) return `<div class="glass card empty-illu fade">Todavía no hay períodos registrados.</div><button class="btn primary" data-act="new">${ICON.plus} Registrar inicio del período</button>`;
+  let h = `<button class="btn primary" data-act="new" style="margin-bottom:14px">${ICON.plus} Agregar período</button>`;
+  for (let i = cy.length-1; i >= 0; i--){
+    const c = cy[i], ci = T.cycleInfo(c, S.settings);
+    const gap = i>0 ? T.diff(ci.hd, T.startHd(cy[i-1])) + 1 : null;
+    h += `<div class="glass card fade"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span class="pill p-nida" style="margin:0">${fShort(c.onset)} · ${c.onah==='night'?'noche':'día'}</span>
+      ${gap ? `<span style="font-size:13px;color:var(--sub)">Intervalo: <b style="color:var(--text)">${gap} días</b></span>` : ''}</div>
+      <div class="row">${dot('nida','drop')}<div class="t"><b>Inicio</b><span>${fLong(c.onset)} · ${hebShort(ci.hd)}</span></div></div>
+      <div class="row">${dot('clean','check')}<div class="t"><b>Hefsek tahará</b><span>${c.hefsek ? fLong(c.hefsek) : 'Pendiente'}</span></div></div>
+      <div class="row">${dot('mikve','wave')}<div class="t"><b>Mikve</b><span>${c.mikveDone ? 'Noche del ' + fLong(ci.mikve) : (c.hefsek ? 'Prevista: noche del ' + fLong(ci.mikve) : '—')}</span></div></div>
+      <div class="btns" style="margin-top:8px"><button class="btn glass small" style="flex:1" data-act="edit" data-id="${c.id}">Editar</button>
+      <button class="btn glass small danger" style="flex:1" data-act="del" data-id="${c.id}">Borrar</button></div></div>`;
+  }
+  return h;
+}
+
+// ---------------- Render ----------------
+const app = document.getElementById('app');
+function render(){
+  const t = T.today();
+  const titles = {hoy:'Tahará', cal:'Calendario', hist:'Historial'};
+  app.innerHTML = `<header class="top"><div><h1>${titles[tab]}</h1>
+    <div class="date"><b>${fLong(t)}</b><br>${T.hebLabel(t)} · <span class="he">${hebHe(t)}</span></div></div>
+    <button class="round glass" data-act="settings" aria-label="Ajustes">${ICON.gear}</button></header>` +
+    (tab==='hoy' ? viewHoy() : tab==='cal' ? viewCal() : viewHist()) +
+    `<p class="hint" style="text-align:center;margin:24px 10px 0;font-size:12px;color:var(--faint)">Cálculos orientativos. Ante cualquier duda, consultá con tu rav.</p>`;
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+}
+
+// ---------------- Sheets ----------------
+let scrim, sheet;
+function openSheet(html, onMount){
+  closeSheet(true);
+  scrim = document.createElement('div'); scrim.className = 'scrim';
+  sheet = document.createElement('div'); sheet.className = 'sheet';
+  sheet.innerHTML = '<div class="grab"></div>' + html;
+  document.body.append(scrim, sheet);
+  scrim.onclick = () => closeSheet();
+  requestAnimationFrame(() => { scrim.classList.add('show'); sheet.classList.add('show'); });
+  if (onMount) onMount(sheet);
+}
+function closeSheet(now){
+  const a = scrim, b = sheet; scrim = sheet = null;
+  if (!a) return;
+  if (now) { a.remove(); b.remove(); return; }
+  a.classList.remove('show'); b.classList.remove('show');
+  setTimeout(() => { a.remove(); b.remove(); }, 380);
+}
+function toast(msg){
+  const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function onahSeg(v){
+  return `<div class="seg" data-seg="onah"><button data-v="day" class="${v==='day'?'on':''}">${ICON.sun} De día</button><button data-v="night" class="${v==='night'?'on':''}">${ICON.moon} De noche</button></div>`;
+}
+function wireSeg(root, name, cb){
+  root.querySelectorAll(`[data-seg="${name}"] button`).forEach(b => b.onclick = () => {
+    b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); cb(b.dataset.v);
+  });
+}
+function onsetHint(date, onah){
+  if (!date) return '';
+  const hd = onah === 'night' ? T.add(date,1) : date;
+  return `Fecha hebrea: <b>${T.hebLabel(hd)}</b> · <span class="he">${hebHe(hd)}</span><br>` +
+    (onah==='night' ? `Como fue después de la shkiá (${shkia(date)}), ya cuenta como el día hebreo siguiente.` : `Shkiá de ese día: ${shkia(date)}. Si fue después, elegí “De noche”.`);
+}
+
+function sheetCycle(c){
+  const isNew = !c;
+  c = c || { onset: T.today(), onah: 'day' };
+  let onah = c.onah;
+  openSheet(`<h3>${isNew ? 'Inicio del período' : 'Editar período'}</h3>
+    <p class="lead">${isNew ? 'Cargá cuándo empezó. La app calcula todo lo demás.' : 'Corregí lo que haga falta.'}</p>
+    <label class="f">Fecha</label><input type="date" id="fOnset" value="${c.onset}" max="${T.today()}">
+    <label class="f">¿Antes o después de la shkiá?</label>${onahSeg(onah)}
+    <p class="hint" id="fHint"></p>
+    ${isNew ? '' : `<label class="f">Hefsek tahará</label><input type="date" id="fHef" value="${c.hefsek||''}">
+      <div class="sw" style="margin-top:10px"><div><b>Ya fue a la mikve</b><span>Cierra el ciclo</span></div><button class="toggle ${c.mikveDone?'on':''}" id="fMik"></button></div>`}
+    <div style="margin-top:22px"><button class="btn primary" id="fSave">Guardar</button><button class="btn glass" id="fCancel">Cancelar</button></div>`,
+  root => {
+    const upd = () => root.querySelector('#fHint').innerHTML = onsetHint(root.querySelector('#fOnset').value, onah);
+    upd(); root.querySelector('#fOnset').oninput = upd;
+    wireSeg(root, 'onah', v => { onah = v; upd(); });
+    const mik = root.querySelector('#fMik'); if (mik) mik.onclick = () => mik.classList.toggle('on');
+    root.querySelector('#fCancel').onclick = () => closeSheet();
+    root.querySelector('#fSave').onclick = () => {
+      const onset = root.querySelector('#fOnset').value;
+      if (!onset) return toast('Elegí una fecha');
+      if (isNew){
+        const last = sorted().slice(-1)[0];
+        if (last && !last.mikveDone && last.hefsek) last.mikveDone = true; // ciclo anterior cerrado
+        S.cycles.push({ id: Date.now(), onset, onah, hefsek: null, bedikot: {}, mikveDone: false });
+        toast('Período registrado');
+      } else {
+        const hef = root.querySelector('#fHef').value || null;
+        if (hef && T.diff(hef, onset) < 0) return toast('El hefsek no puede ser antes del inicio');
+        Object.assign(c, { onset, onah, hefsek: hef, mikveDone: hef ? root.querySelector('#fMik').classList.contains('on') : false });
+        toast('Cambios guardados');
+      }
+      save(); closeSheet(); render();
+    };
+  });
+}
+
+function sheetHefsek(){
+  const cy = sorted(), c = cy[cy.length-1], ci = T.cycleInfo(c, S.settings), t = T.today();
+  const def = T.diff(t, ci.earliestHefsek) >= 0 ? t : ci.earliestHefsek;
+  openSheet(`<h3>Hefsek tahará</h3><p class="lead">Se hace antes de la shkiá. Al día siguiente empieza el primero de los siete días limpios.</p>
+    <label class="f">Fecha del hefsek</label><input type="date" id="fHef" value="${def}" min="${c.onset}">
+    <p class="hint" id="fHint"></p>
+    <div style="margin-top:22px"><button class="btn primary" id="fSave">${ICON.check} Confirmar hefsek</button><button class="btn glass" id="fCancel">Cancelar</button></div>`,
+  root => {
+    const inp = root.querySelector('#fHef');
+    const upd = () => { const v = inp.value; if (!v) return;
+      const early = T.diff(v, ci.earliestHefsek) < 0;
+      root.querySelector('#fHint').innerHTML = (early ? `<b style="color:var(--nida)">Atención:</b> es antes del día ${S.settings.minDays} (${fShort(ci.earliestHefsek)}). Consultá con el rav.<br>` : '') +
+        `Shkiá: <b>${shkia(v)}</b> · Siete días limpios: ${fShort(T.add(v,1))} al ${fShort(T.add(v,7))} · Mikve: noche del ${fShort(T.add(v,7))}`; };
+    upd(); inp.oninput = upd;
+    root.querySelector('#fCancel').onclick = () => closeSheet();
+    root.querySelector('#fSave').onclick = () => { if (!inp.value) return; c.hefsek = inp.value; c.bedikot = {}; save(); closeSheet(); render(); toast('Hefsek registrado'); };
+  });
+}
+
+function sheetStain(){
+  const cy = sorted(), c = cy[cy.length-1];
+  openSheet(`<h3>Volví a ver</h3><p class="lead">Si apareció sangre o una mancha durante los días limpios, primero consultá con el rav. Según lo que te diga:</p>
+    <button class="btn glass" id="sRe">${ICON.check} Hacer un nuevo hefsek</button>
+    <p class="hint" style="margin:6px 8px 14px">Se reinician los siete días limpios. El inicio del período queda igual.</p>
+    <button class="btn glass" id="sNew">${ICON.drop} Es un período nuevo</button>
+    <p class="hint" style="margin:6px 8px 14px">Se registra un nuevo inicio y se recalculan las onot.</p>
+    <button class="btn glass" id="sCancel">Cancelar</button>`,
+  root => {
+    root.querySelector('#sCancel').onclick = () => closeSheet();
+    root.querySelector('#sRe').onclick = () => { c.hefsek = null; c.bedikot = {}; save(); closeSheet(true); render(); sheetHefsek(); };
+    root.querySelector('#sNew').onclick = () => { closeSheet(true); sheetCycle(); };
+  });
+}
+
+function sheetConfirm(text, okLabel, fn){
+  openSheet(`<h3>${text}</h3><p class="lead">Esta acción no se puede deshacer.</p>
+    <button class="btn glass danger" id="cOk">${okLabel}</button><button class="btn glass" id="cNo">Cancelar</button>`,
+    root => { root.querySelector('#cNo').onclick = () => closeSheet(); root.querySelector('#cOk').onclick = () => { fn(); closeSheet(); render(); }; });
+}
+
+function sheetSettings(){
+  const st = S.settings;
+  openSheet(`<h3>Ajustes</h3><p class="lead">Definilos con tu rav según el minhag que siguen.</p>
+    <label class="f">Días mínimos hasta el hefsek</label>
+    <div class="seg" data-seg="min">${[4,5,6,7].map(n=>`<button data-v="${n}" class="${st.minDays==n?'on':''}">${n}</button>`).join('')}</div>
+    <p class="hint">Contando el día en que empezó. Muchos ashkenazím esperan 5; algunas comunidades sefaradíes, 4.</p>
+    <label class="f">Onot perishá</label>
+    <div class="glass card" style="padding:2px 16px;margin:0">
+      <div class="sw"><div><b>Cuidar también el día 31</b><span>Además de la oná beinonit del día 30</span></div><button class="toggle ${st.day31?'on':''}" data-tg="day31"></button></div>
+      <div class="sw"><div><b>Or zarúa</b><span>Separarse también en la oná anterior</span></div><button class="toggle ${st.orZarua?'on':''}" data-tg="orZarua"></button></div>
+    </div>
+    <label class="f">Ubicación para la shkiá</label>
+    <div class="glass card" style="padding:14px 16px;margin:0"><b id="sCity">${esc(st.city)}</b><div style="font-size:13px;color:var(--sub);margin:2px 0 10px">${(+st.lat).toFixed(3)}, ${(+st.lng).toFixed(3)} · shkiá hoy ${shkia(T.today())}</div>
+      <div class="btns"><button class="btn glass small" style="flex:1" id="sGeo">Usar mi ubicación</button><button class="btn glass small" style="flex:1" id="sBA">Buenos Aires</button></div></div>
+    <label class="f">Copia de seguridad</label>
+    <div class="btns"><button class="btn glass small" style="flex:1" id="sExp">Exportar</button><button class="btn glass small" style="flex:1" id="sImp">Importar</button></div>
+    <input type="file" id="sFile" accept="application/json" hidden>
+    <div class="glass card note" style="margin-top:18px">Los datos se guardan sólo en este teléfono; no se envían a ningún servidor. Exportá una copia de vez en cuando por si cambiás de celular.<br><br>Los cálculos son orientativos y no reemplazan la consulta con el rav.</div>
+    <button class="btn glass danger" id="sWipe">Borrar todos los datos</button>
+    <button class="btn primary" id="sClose">Listo</button>`,
+  root => {
+    wireSeg(root, 'min', v => { st.minDays = +v; save(); });
+    root.querySelectorAll('[data-tg]').forEach(b => b.onclick = () => { b.classList.toggle('on'); st[b.dataset.tg] = b.classList.contains('on'); save(); });
+    root.querySelector('#sBA').onclick = () => { Object.assign(st, {lat:T.DEFAULTS.lat, lng:T.DEFAULTS.lng, city:'Buenos Aires'}); save(); sheetSettings(); };
+    root.querySelector('#sGeo').onclick = () => {
+      if (!navigator.geolocation) return toast('Ubicación no disponible');
+      navigator.geolocation.getCurrentPosition(p => { Object.assign(st, {lat:p.coords.latitude, lng:p.coords.longitude, city:'Mi ubicación'}); save(); sheetSettings(); toast('Ubicación actualizada'); },
+        () => toast('No se pudo obtener la ubicación'));
+    };
+    root.querySelector('#sExp').onclick = () => {
+      const blob = new Blob([JSON.stringify(S, null, 2)], {type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'tahara-copia-' + T.today() + '.json'; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    };
+    const file = root.querySelector('#sFile');
+    root.querySelector('#sImp').onclick = () => file.click();
+    file.onchange = () => { const f = file.files[0]; if (!f) return; f.text().then(txt => {
+      try { const d = JSON.parse(txt); if (!Array.isArray(d.cycles)) throw 0; S = d; S.settings = Object.assign({}, T.DEFAULTS, S.settings); save(); closeSheet(); render(); toast('Copia importada'); }
+      catch(e){ toast('El archivo no es válido'); } }); };
+    root.querySelector('#sWipe').onclick = () => sheetConfirm('¿Borrar todos los datos?', 'Borrar todo', () => { S = { cycles: [], settings: Object.assign({}, T.DEFAULTS) }; save(); toast('Datos borrados'); });
+    root.querySelector('#sClose').onclick = () => { closeSheet(); render(); };
+  });
+}
+
+// ---------------- Eventos ----------------
+document.getElementById('tabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; tab = b.dataset.tab; render(); window.scrollTo({top:0, behavior:'smooth'}); };
+app.onclick = e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act, cy = sorted(), last = cy[cy.length-1];
+  const byId = id => S.cycles.find(c => String(c.id) === String(id));
+  switch (act){
+    case 'new': sheetCycle(); break;
+    case 'edit': sheetCycle(byId(el.dataset.id)); break;
+    case 'del': sheetConfirm('¿Borrar este período?', 'Borrar período', () => { S.cycles = S.cycles.filter(c => String(c.id) !== el.dataset.id); save(); toast('Período borrado'); }); break;
+    case 'hefsek': sheetHefsek(); break;
+    case 'stain': sheetStain(); break;
+    case 'mikveDone': last.mikveDone = true; save(); render(); toast('¡Mazal tov! Ciclo completo'); break;
+    case 'bed': { last.bedikot = last.bedikot || {}; const k = el.dataset.k; last.bedikot[k] = !last.bedikot[k]; save(); render(); break; }
+    case 'settings': sheetSettings(); break;
+    case 'sel': selDay = el.dataset.d; if (selDay.slice(0,7) !== calMonth) calMonth = selDay.slice(0,7); render(); break;
+    case 'mprev': case 'mnext': { const [y,m] = calMonth.split('-').map(Number); const d = new Date(y, m-1 + (act==='mnext'?1:-1), 1, 12); calMonth = T.iso(d).slice(0,7); render(); break; }
+    case 'mtoday': calMonth = T.today().slice(0,7); selDay = T.today(); render(); break;
+  }
+};
+
+// Swipe en el calendario
+let tx = null;
+app.addEventListener('touchstart', e => { if (tab==='cal' && e.target.closest('.grid')) tx = e.touches[0].clientX; }, {passive:true});
+app.addEventListener('touchend', e => { if (tx===null) return; const dx = e.changedTouches[0].clientX - tx; tx = null;
+  if (Math.abs(dx) > 50){ const [y,m] = calMonth.split('-').map(Number); calMonth = T.iso(new Date(y, m-1 + (dx<0?1:-1), 1, 12)).slice(0,7); render(); } });
+
+// Refrescar al volver a la app (cambia el día)
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+
+render();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+</body>
+</html>
