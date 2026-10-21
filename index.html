@@ -356,7 +356,7 @@ function viewCal(){
     if (x.onot.length) dots += '<i style="background:var(--ona)"></i>';
     if (x.start) dots += '<i style="background:var(--nida)"></i>';
     if (x.hefsek || x.hefsekFrom) dots += '<i style="background:var(--clean)"></i>';
-    g += `<div class="${cls}" data-act="sel" data-d="${s}"><span class="g">${+s.slice(8)}</span><span class="h">${T.gematria(T.heb(s).day)}</span><span class="marks">${dots}</span></div>`;
+    g += `<div class="${cls}" data-act="sel" data-d="${s}"><span class="g">${+s.slice(8)}</span><span class="h">${T.heb(s).day}</span><span class="marks">${dots}</span></div>`;
   }
   let h = `<div class="glass card fade"><div class="cal-head">
     <button class="round glass" data-act="mprev">${ICON.left}</button>
