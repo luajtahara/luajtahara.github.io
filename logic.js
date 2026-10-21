@@ -67,6 +67,8 @@
   // ---------- Ajustes por defecto (a definir con el rav) ----------
   const DEFAULTS = {
     minDays: 5,          // días mínimos hasta el hefsek (contando el día del inicio)
+    morning: '07:00',    // alarma de bedika de la mañana
+    beforeShkia: 15,     // minutos antes de la shkiá para la bedika de la tarde
     day31: false,        // agregar el día 31 a la oná beinonit
     orZarua: false,      // cuidar también la oná anterior (or zarúa)
     lat: -34.6037, lng: -58.3816, city: 'Buenos Aires'

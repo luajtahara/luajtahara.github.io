@@ -153,7 +153,7 @@ nav.tabs button.on{color:var(--accent);background:var(--glass-strong);box-shadow
 .sheet h3{font-size:22px;margin:0 0 4px;font-weight:750}
 .sheet .lead{color:var(--sub);font-size:15px;margin:0 0 16px;line-height:1.4}
 label.f{display:block;font-size:13px;font-weight:650;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin:16px 4px 8px}
-input[type=date],input[type=text],input[type=number]{width:100%;font:inherit;font-size:17px;color:var(--text);padding:14px 16px;border-radius:16px;border:1px solid var(--stroke-soft);background:var(--glass);-webkit-appearance:none;appearance:none;min-height:52px}
+input[type=date],input[type=time],input[type=text],input[type=number]{width:100%;font:inherit;font-size:17px;color:var(--text);padding:14px 16px;border-radius:16px;border:1px solid var(--stroke-soft);background:var(--glass);-webkit-appearance:none;appearance:none;min-height:52px}
 .seg{display:flex;padding:4px;border-radius:16px;background:var(--glass);border:1px solid var(--stroke-soft)}
 .seg button{flex:1;border:0;background:none;font:inherit;font-size:15px;font-weight:600;color:var(--sub);padding:11px 8px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
 .seg button.on{background:var(--glass-strong);color:var(--text);box-shadow:0 2px 10px rgba(0,0,0,.1),inset 0 1px 0 var(--stroke)}
@@ -317,6 +317,7 @@ function bedikotCard(c, ci, t){
   });
   const done = Object.values(b).filter(Boolean).length;
   return `<div class="sec-title">Bedikot · ${done} de 14</div><div class="glass card"><div class="bed">${rows}</div>
+    <button class="btn glass small" data-act="alarms" style="width:100%;margin-top:14px">${ICON.bell} Agregar alarmas al calendario</button>
     <p class="hint" style="margin:12px 0 0">Si alguna bedika salió con duda, guardá el paño y consultá con el rav.</p></div>`;
 }
 
@@ -510,7 +511,7 @@ function sheetHefsek(){
         `Shkiá: <b>${shkia(v)}</b> · Siete días limpios: ${fShort(T.add(v,1))} al ${fShort(T.add(v,7))} · Mikve: noche del ${fShort(T.add(v,7))}`; };
     upd(); inp.oninput = upd;
     root.querySelector('#fCancel').onclick = () => closeSheet();
-    root.querySelector('#fSave').onclick = () => { if (!inp.value) return; c.hefsek = inp.value; c.bedikot = {}; save(); closeSheet(); render(); toast('Hefsek registrado'); };
+    root.querySelector('#fSave').onclick = () => { if (!inp.value) return; c.hefsek = inp.value; c.bedikot = {}; save(); render(); toast('Hefsek registrado'); sheetAlarms(c); };
   });
 }
 
@@ -526,6 +527,59 @@ function sheetStain(){
     root.querySelector('#sCancel').onclick = () => closeSheet();
     root.querySelector('#sRe').onclick = () => { c.hefsek = null; c.bedikot = {}; save(); closeSheet(true); render(); sheetHefsek(); };
     root.querySelector('#sNew').onclick = () => { closeSheet(true); sheetCycle(); };
+  });
+}
+
+// ---------------- Alarmas de bedika (Calendario del iPhone) ----------------
+function bedikaTimes(c){
+  const st = S.settings, ci = T.cycleInfo(c, st), out = [];
+  const [hh, mm] = String(st.morning || '07:00').split(':').map(Number);
+  ci.clean.forEach((s, i) => {
+    const m = T.parse(s); m.setHours(hh, mm || 0, 0, 0);
+    out.push({ day: i + 1, date: s, slot: 'm', at: m, label: 'mañana' });
+    const ss = T.sunset(s, st.lat, st.lng);
+    if (ss) out.push({ day: i + 1, date: s, slot: 't', at: new Date(Math.floor((ss.getTime() - (st.beforeShkia || 15) * 60000) / 60000) * 60000), label: 'antes de la shkiá', shkia: ss });
+  });
+  return out;
+}
+function buildIcs(c){
+  const u = d => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const hm = d => d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  const now = u(new Date());
+  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Luaj Tahara//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Bedikot'];
+  bedikaTimes(c).forEach(b => {
+    L.push('BEGIN:VEVENT', `UID:bedika-${b.date}-${b.slot}@luajtahara.github.io`, `DTSTAMP:${now}`,
+      `DTSTART:${u(b.at)}`, `DTEND:${u(new Date(b.at.getTime() + 10 * 60000))}`,
+      `SUMMARY:Bedika · día ${b.day} de 7 (${b.label})`,
+      `DESCRIPTION:${b.shkia ? 'Shkiá a las ' + hm(b.shkia) + '. Hacer la bedika antes.' : 'Bedika de la mañana, al levantarse.'}`,
+      'TRANSP:TRANSPARENT',
+      'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Bedika', 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT');
+  });
+  L.push('END:VCALENDAR');
+  return L.join('\r\n') + '\r\n';
+}
+function sheetAlarms(c){
+  const list = bedikaTimes(c);
+  const hm = d => d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  const rows = list.filter(b => b.slot === 't').map(b => `<div class="d">Día ${b.day}</div><div class="dt">${fShort(b.date)}</div><div class="dt" style="text-align:right">${S.settings.morning}</div><div class="dt" style="text-align:right">${hm(b.at)}</div>`).join('');
+  openSheet(`<h3>Alarmas de bedika</h3>
+    <p class="lead">Se agregan ${list.length} alarmas al Calendario del iPhone, con el nombre “Bedika”: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shkiá, durante los siete días limpios. Suenan aunque la app esté cerrada.</p>
+    <div class="glass card" style="padding:14px 16px"><div class="bed" style="grid-template-columns:auto 1fr auto auto;gap:6px 14px">
+      <div></div><div></div><div class="dt" style="text-align:right">Mañana</div><div class="dt" style="text-align:right">Tarde</div>${rows}</div></div>
+    <button class="btn primary" id="aAdd">${ICON.bell} Agregar al calendario</button>
+    <button class="btn glass" id="aNo">Ahora no</button>
+    <p class="hint">En la pantalla que se abre, tocá “Agregar todo”. Si después rehacés el hefsek, borrá estas alarmas del calendario y agregá las nuevas.</p>`,
+  root => {
+    root.querySelector('#aNo').onclick = () => closeSheet();
+    root.querySelector('#aAdd').onclick = () => {
+      const blob = new Blob([buildIcs(c)], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.target = '_blank'; a.rel = 'noopener';
+      if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) a.download = 'bedikot.ics';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      closeSheet();
+    };
   });
 }
 
@@ -546,6 +600,12 @@ function sheetSettings(){
       <div class="sw"><div><b>Cuidar también el día 31</b><span>Además de la oná beinonit del día 30</span></div><button class="toggle ${st.day31?'on':''}" data-tg="day31"></button></div>
       <div class="sw"><div><b>Or zarúa</b><span>Separarse también en la oná anterior</span></div><button class="toggle ${st.orZarua?'on':''}" data-tg="orZarua"></button></div>
     </div>
+    <label class="f">Alarmas de bedika</label>
+    <div class="glass card" style="padding:2px 16px;margin:0">
+      <div class="sw"><div><b>Bedika de la mañana</b><span>Hora de la alarma</span></div><input type="time" id="sMorning" value="${st.morning}" style="width:auto;min-height:40px;padding:8px 12px"></div>
+      <div class="sw" style="flex-direction:column;align-items:stretch"><div><b>Bedika de la tarde</b><span>Minutos antes de la shkiá</span></div>
+        <div class="seg" data-seg="before" style="margin-top:10px">${[10,15,20,30].map(n=>`<button data-v="${n}" class="${st.beforeShkia==n?'on':''}">${n} min</button>`).join('')}</div></div>
+    </div>
     <label class="f">Ubicación para la shkiá</label>
     <div class="glass card" style="padding:14px 16px;margin:0"><b id="sCity">${esc(st.city)}</b><div style="font-size:13px;color:var(--sub);margin:2px 0 10px">${(+st.lat).toFixed(3)}, ${(+st.lng).toFixed(3)} · shkiá hoy ${shkia(T.today())}</div>
       <div class="btns"><button class="btn glass small" style="flex:1" id="sGeo">Usar mi ubicación</button><button class="btn glass small" style="flex:1" id="sBA">Buenos Aires</button></div></div>
@@ -557,6 +617,8 @@ function sheetSettings(){
     <button class="btn primary" id="sClose">Listo</button>`,
   root => {
     wireSeg(root, 'min', v => { st.minDays = +v; save(); });
+    wireSeg(root, 'before', v => { st.beforeShkia = +v; save(); });
+    root.querySelector('#sMorning').onchange = e => { if (e.target.value) { st.morning = e.target.value; save(); } };
     root.querySelectorAll('[data-tg]').forEach(b => b.onclick = () => { b.classList.toggle('on'); st[b.dataset.tg] = b.classList.contains('on'); save(); });
     root.querySelector('#sBA').onclick = () => { Object.assign(st, {lat:T.DEFAULTS.lat, lng:T.DEFAULTS.lng, city:'Buenos Aires'}); save(); sheetSettings(); };
     root.querySelector('#sGeo').onclick = () => {
@@ -594,6 +656,7 @@ app.onclick = e => {
     case 'mikveDone': last.mikveDone = true; save(); render(); toast('¡Mazal tov! Ciclo completo'); break;
     case 'bed': { last.bedikot = last.bedikot || {}; const k = el.dataset.k; last.bedikot[k] = !last.bedikot[k]; save(); render(); break; }
     case 'settings': sheetSettings(); break;
+    case 'alarms': sheetAlarms(last); break;
     case 'sel': selDay = el.dataset.d; if (selDay.slice(0,7) !== calMonth) calMonth = selDay.slice(0,7); render(); break;
     case 'mprev': case 'mnext': { const [y,m] = calMonth.split('-').map(Number); const d = new Date(y, m-1 + (act==='mnext'?1:-1), 1, 12); calMonth = T.iso(d).slice(0,7); render(); break; }
     case 'mtoday': calMonth = T.today().slice(0,7); selDay = T.today(); render(); break;
