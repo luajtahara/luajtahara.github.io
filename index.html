@@ -168,6 +168,13 @@ input[type=date],input[type=time],input[type=text],input[type=number]{width:100%
 .toggle::after{content:"";position:absolute;top:2px;left:2px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .25s}
 .toggle.on{background:var(--clean)} .toggle.on::after{transform:translateX(20px)}
 .note{font-size:13px;color:var(--sub);line-height:1.5;padding:14px 16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 2px 0}
+.chips button{border:1px solid var(--stroke-soft);background:var(--glass);color:var(--text);font:inherit;font-size:14px;padding:6px 12px;border-radius:99px;cursor:pointer}
+.notif{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:22px;margin-top:8px}
+.notif .ic{flex:0 0 36px;height:36px;border-radius:9px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.notif .ic small{font-size:8px;color:#e5443a;font-weight:700}.notif .ic b{font-size:16px;color:#111}
+.notif .tx{flex:1;min-width:0}.notif .tx b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.notif .tx span{font-size:13px;color:var(--sub)}
+.notif .tm{font-size:12px;color:var(--faint);align-self:flex-start}
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 12px);transform:translate(-50%,-150%);z-index:60;padding:12px 18px;border-radius:99px;font-size:15px;font-weight:600;transition:transform .35s cubic-bezier(.2,.9,.25,1)}
 .toast.show{transform:translate(-50%,0)}
 .empty-illu{font-size:15px;color:var(--sub);line-height:1.5}
@@ -542,18 +549,46 @@ function bedikaTimes(c){
   });
   return out;
 }
+// Texto de la alarma: lo que cada mujer elija, para que nadie más lo entienda
+const icsEsc = t => String(t).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, ' ');
+function alarmText(slot, day){
+  const st = S.settings;
+  let t = (slot === 'm' ? st.msgMorning : st.msgEvening);
+  t = String(t || '').trim() || 'Recordatorio';
+  return st.showDay ? t + ' ' + day + '/7' : t;
+}
+const SUG = { m: ['☀️', '🌸', 'Buen día', 'Recordatorio'], t: ['🌙', '🌷', 'Antes de salir', 'Recordatorio'] };
+function alarmTextFields(st){
+  const f = (slot, id, label, val) => `<label class="f">${label}</label>
+    <input type="text" id="${id}" maxlength="60" value="${esc(val)}" placeholder="Escribí lo que quieras">
+    <div class="chips">${SUG[slot].map(x => `<button data-fill="${id}" data-v="${esc(x)}">${esc(x)}</button>`).join('')}</div>`;
+  return f('m', 'mMsg', 'Texto de la alarma de la mañana', st.msgMorning) +
+    f('t', 'tMsg', 'Texto de la alarma de la tarde', st.msgEvening) +
+    `<div class="glass card" style="padding:2px 16px;margin:14px 0 0"><div class="sw"><div><b>Mostrar el número de día</b><span>Agrega “3/7” al final del texto</span></div><button class="toggle ${st.showDay?'on':''}" id="mDay"></button></div></div>
+    <label class="f">Así se va a ver la notificación</label>
+    <div class="glass notif"><div class="ic"><small>${T.parse(T.today()).toLocaleDateString('es-AR',{weekday:'short'}).replace('.','').toUpperCase()}</small><b>${T.parse(T.today()).getDate()}</b></div>
+      <div class="tx"><b id="pv"></b><span>Calendario</span></div><div class="tm">ahora</div></div>
+    <p class="hint">No dice “bedika” ni el nombre de la app: sólo el texto que elijas. Podés usar una palabra, un emoji o algo que sólo vos entiendas.</p>`;
+}
+function wireAlarmText(root, st){
+  const m = root.querySelector('#mMsg'), t = root.querySelector('#tMsg'), d = root.querySelector('#mDay'), pv = root.querySelector('#pv');
+  const upd = () => { st.msgMorning = m.value; st.msgEvening = t.value; st.showDay = d.classList.contains('on'); save(); pv.textContent = alarmText('m', 3); };
+  m.oninput = t.oninput = upd;
+  d.onclick = () => { d.classList.toggle('on'); upd(); };
+  root.querySelectorAll('[data-fill]').forEach(b => b.onclick = () => { const el = root.querySelector('#' + b.dataset.fill); el.value = b.dataset.v; upd(); });
+  upd();
+}
 function buildIcs(c){
   const u = d => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   const hm = d => d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   const now = u(new Date());
-  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Luaj Tahara//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Bedikot'];
+  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Recordatorios//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Recordatorios'];
   bedikaTimes(c).forEach(b => {
-    L.push('BEGIN:VEVENT', `UID:bedika-${b.date}-${b.slot}@luajtahara.github.io`, `DTSTAMP:${now}`,
+    const txt = icsEsc(alarmText(b.slot, b.day));
+    L.push('BEGIN:VEVENT', `UID:r-${b.date}-${b.slot}-${c.id}@recordatorios`, `DTSTAMP:${now}`,
       `DTSTART:${u(b.at)}`, `DTEND:${u(new Date(b.at.getTime() + 10 * 60000))}`,
-      `SUMMARY:Bedika · día ${b.day} de 7 (${b.label})`,
-      `DESCRIPTION:${b.shkia ? 'Shkiá a las ' + hm(b.shkia) + '. Hacer la bedika antes.' : 'Bedika de la mañana, al levantarse.'}`,
-      'TRANSP:TRANSPARENT',
-      'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Bedika', 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT');
+      `SUMMARY:${txt}`, 'TRANSP:TRANSPARENT',
+      'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${txt}`, 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT');
   });
   L.push('END:VCALENDAR');
   return L.join('\r\n') + '\r\n';
@@ -563,19 +598,22 @@ function sheetAlarms(c){
   const hm = d => d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   const rows = list.filter(b => b.slot === 't').map(b => `<div class="d">Día ${b.day}</div><div class="dt">${fShort(b.date)}</div><div class="dt" style="text-align:right">${S.settings.morning}</div><div class="dt" style="text-align:right">${hm(b.at)}</div>`).join('');
   openSheet(`<h3>Alarmas de bedika</h3>
-    <p class="lead">Se agregan ${list.length} alarmas al Calendario del iPhone, con el nombre “Bedika”: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shkiá, durante los siete días limpios. Suenan aunque la app esté cerrada.</p>
+    <p class="lead">Se agregan ${list.length} alarmas al Calendario del iPhone: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shkiá, durante los siete días limpios. Suenan aunque la app esté cerrada.</p>
+    ${alarmTextFields(S.settings)}
+    <label class="f">Horarios</label>
     <div class="glass card" style="padding:14px 16px"><div class="bed" style="grid-template-columns:auto 1fr auto auto;gap:6px 14px">
       <div></div><div></div><div class="dt" style="text-align:right">Mañana</div><div class="dt" style="text-align:right">Tarde</div>${rows}</div></div>
     <button class="btn primary" id="aAdd">${ICON.bell} Agregar al calendario</button>
     <button class="btn glass" id="aNo">Ahora no</button>
     <p class="hint">En la pantalla que se abre, tocá “Agregar todo”. Si después rehacés el hefsek, borrá estas alarmas del calendario y agregá las nuevas.</p>`,
   root => {
+    wireAlarmText(root, S.settings);
     root.querySelector('#aNo').onclick = () => closeSheet();
     root.querySelector('#aAdd').onclick = () => {
       const blob = new Blob([buildIcs(c)], { type: 'text/calendar;charset=utf-8' });
       const url = URL.createObjectURL(blob), a = document.createElement('a');
       a.href = url; a.target = '_blank'; a.rel = 'noopener';
-      if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) a.download = 'bedikot.ics';
+      if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) a.download = 'recordatorios.ics';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
       closeSheet();
@@ -606,6 +644,7 @@ function sheetSettings(){
       <div class="sw" style="flex-direction:column;align-items:stretch"><div><b>Bedika de la tarde</b><span>Minutos antes de la shkiá</span></div>
         <div class="seg" data-seg="before" style="margin-top:10px">${[10,15,20,30].map(n=>`<button data-v="${n}" class="${st.beforeShkia==n?'on':''}">${n} min</button>`).join('')}</div></div>
     </div>
+    ${alarmTextFields(st)}
     <label class="f">Ubicación para la shkiá</label>
     <div class="glass card" style="padding:14px 16px;margin:0"><b id="sCity">${esc(st.city)}</b><div style="font-size:13px;color:var(--sub);margin:2px 0 10px">${(+st.lat).toFixed(3)}, ${(+st.lng).toFixed(3)} · shkiá hoy ${shkia(T.today())}</div>
       <div class="btns"><button class="btn glass small" style="flex:1" id="sGeo">Usar mi ubicación</button><button class="btn glass small" style="flex:1" id="sBA">Buenos Aires</button></div></div>
@@ -618,6 +657,7 @@ function sheetSettings(){
   root => {
     wireSeg(root, 'min', v => { st.minDays = +v; save(); });
     wireSeg(root, 'before', v => { st.beforeShkia = +v; save(); });
+    wireAlarmText(root, st);
     root.querySelector('#sMorning').onchange = e => { if (e.target.value) { st.morning = e.target.value; save(); } };
     root.querySelectorAll('[data-tg]').forEach(b => b.onclick = () => { b.classList.toggle('on'); st[b.dataset.tg] = b.classList.contains('on'); save(); });
     root.querySelector('#sBA').onclick = () => { Object.assign(st, {lat:T.DEFAULTS.lat, lng:T.DEFAULTS.lng, city:'Buenos Aires'}); save(); sheetSettings(); };

@@ -69,6 +69,9 @@
     minDays: 5,          // días mínimos hasta el hefsek (contando el día del inicio)
     morning: '07:00',    // alarma de bedika de la mañana
     beforeShkia: 15,     // minutos antes de la shkiá para la bedika de la tarde
+    msgMorning: 'Recordatorio',  // texto de la alarma de la mañana (lo elige cada mujer)
+    msgEvening: 'Recordatorio',  // texto de la alarma de la tarde
+    showDay: false,      // agregar el número de día (1/7) al texto
     day31: false,        // agregar el día 31 a la oná beinonit
     orZarua: false,      // cuidar también la oná anterior (or zarúa)
     lat: -34.6037, lng: -58.3816, city: 'Buenos Aires'
