@@ -127,8 +127,10 @@ header.top{display:flex;align-items:flex-start;justify-content:space-between;mar
 .day.proj{background:repeating-linear-gradient(135deg,var(--nida-bg) 0 6px,transparent 6px 11px)}
 .day.clean{background:var(--clean-bg)} .day.clean .g{color:var(--clean)}
 .day.mikve{background:var(--mikve-bg)} .day.mikve .g{color:var(--mikve)}
+.day.ona{background:var(--ona-bg)} .day.ona .g{color:var(--ona)}
+.day.onaRing{box-shadow:inset 0 0 0 2px var(--ona)}
 .day.today{border-color:var(--accent)}
-.day.sel{background:var(--glass-strong);box-shadow:inset 0 0 0 2px var(--accent)}
+.day.sel{box-shadow:inset 0 0 0 2px var(--accent)} .day.sel:not(.nida):not(.proj):not(.clean):not(.mikve):not(.ona){background:var(--glass-strong)}
 .day .marks{position:absolute;bottom:5px;display:flex;gap:3px}
 .day .marks i{width:5px;height:5px;border-radius:50%}
 .legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:13px;color:var(--sub);margin-top:14px;padding:0 4px}
@@ -393,6 +395,8 @@ function onotCard(cy, t){
       <div class="t"><b>${esc(o.label)}</b><span>${onahText(o)}</span></div>
       <div class="r">${o.hd ? hebShort(o.hd) + '<br><span class="he">' + hebHe(o.hd) + '</span>' : ''}</div></div>`;
   });
+  if (list.some(o => o.gDate && T.diff(o.gDate, t) >= 0))
+    h += `<button class="btn glass small" data-act="onaRem" style="width:100%;margin:6px 0 12px">${ICON.bell} Agregar recordatorios de onot</button>`;
   return h + `</div>`;
 }
 
@@ -413,10 +417,10 @@ function viewCal(){
     let cls = 'day';
     if (!inM) cls += ' out';
     if (x.mikve) cls += ' mikve'; else if (x.clean) cls += ' clean'; else if (x.nida) cls += x.projected ? ' proj' : ' nida';
+    if (x.onot.length) cls += (x.mikve || x.clean || x.nida) ? ' onaRing' : ' ona';
     if (s===t) cls += ' today';
     if (s===selDay) cls += ' sel';
     let dots = '';
-    if (x.onot.length) dots += '<i style="background:var(--ona)"></i>';
     if (x.start) dots += '<i style="background:var(--nida)"></i>';
     if (x.hefsek || x.hefsekFrom) dots += '<i style="background:var(--clean)"></i>';
     g += `<div class="${cls}" data-act="sel" data-d="${s}"><span class="g">${+s.slice(8)}</span><span class="h">${T.heb(s).day}</span><span class="marks">${dots}</span></div>`;
@@ -427,7 +431,7 @@ function viewCal(){
     <button class="round glass" data-act="mnext">${ICON.right}</button></div>
     <div class="grid">${g}</div>
     <div class="legend"><span><i style="background:var(--nida)"></i>Nidá</span><span><i style="background:var(--clean)"></i>Shivá nekiím</span>
-    <span><i style="background:var(--mikve)"></i>Mikve</span><span><i style="background:var(--ona);border-radius:50%"></i>Oná</span></div></div>`;
+    <span><i style="background:var(--mikve)"></i>Mikve</span><span><i style="background:var(--ona)"></i>Oná</span></div></div>`;
   h += dayDetail(selDay, mk[selDay] || {onot:[]});
   if (calMonth !== t.slice(0,7)) h += `<button class="btn glass" data-act="mtoday">Volver a hoy</button>`;
   return h;
@@ -442,6 +446,7 @@ function dayDetail(s, x){
   if (x.clean) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Shivá nekiím · día ${x.clean} de 7</b><span>Bedikot a la mañana y a la tarde</span></div></div>`;
   if (x.mikve) rows += `<div class="row">${dot('mikve','wave')}<div class="t"><b>Noche de mikve</b><span>Después de tzet hakojavim</span></div></div>`;
   x.onot.forEach(o => rows += `<div class="row">${dot('ona',o.onah==='night'?'moon':'sun')}<div class="t"><b>${esc(o.label)}</b><span>${onahText(o)}</span></div></div>`);
+  if (x.onot.length && T.diff(s, T.today()) >= 0) rows += `<button class="btn glass small" data-act="onaRem" data-d="${s}" style="width:100%;margin:6px 0 10px">${ICON.bell} Recordatorio para este día</button>`;
   return `<div class="glass card fade" style="padding:16px 16px 6px">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:0 2px 6px">
       <b style="font-size:18px">${fLong(s)}</b><span class="he" style="color:var(--sub);font-size:15px">${hebHe(s)}</span></div>
@@ -680,6 +685,86 @@ function sheetAlarms(c){
   });
 }
 
+// ---------------- Recordatorios de oná ----------------
+function downloadIcs(items){
+  const u = d => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const now = u(new Date());
+  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Recordatorios//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Recordatorios'];
+  items.forEach(it => {
+    const txt = icsEsc(it.text);
+    L.push('BEGIN:VEVENT', `UID:${it.uid}@recordatorios`, `DTSTAMP:${now}`,
+      `DTSTART:${u(it.at)}`, `DTEND:${u(new Date(it.at.getTime() + 10 * 60000))}`,
+      `SUMMARY:${txt}`, 'TRANSP:TRANSPARENT',
+      'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${txt}`, 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT');
+  });
+  L.push('END:VCALENDAR');
+  const blob = new Blob([L.join('\r\n') + '\r\n'], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) a.download = 'recordatorios.ics';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+function onaItems(list){
+  const st = S.settings, out = [], now = Date.now();
+  const at = (date, hm) => { const [h, m] = String(hm || '08:00').split(':').map(Number); const d = T.parse(date); d.setHours(h, m || 0, 0, 0); return d; };
+  const txt = String(st.msgOna || '').trim() || 'Recordatorio';
+  list.forEach(o => {
+    if (st.onaPrev) out.push({ uid: `o-${o.kind}-${o.gDate}-p`, at: at(T.add(o.gDate, -1), st.onaPrevTime), text: txt, o, when: 'prev' });
+    if (st.onaSame) out.push({ uid: `o-${o.kind}-${o.gDate}-s`, at: at(o.gDate, st.onaSameTime), text: txt, o, when: 'same' });
+  });
+  const seen = new Set();
+  return out.filter(it => it.at.getTime() > now && !seen.has(+it.at) && seen.add(+it.at));
+}
+function sheetOna(day){
+  const st = S.settings, t = T.today();
+  const all = T.onot(sorted(), st).filter(o => o.gDate && T.diff(o.gDate, t) >= 0 && (!day || o.gDate === day));
+  if (!all.length) return toast('No hay onot próximas');
+  const pick = new Set(all.map((o, i) => i));
+  const hm = d => d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  openSheet(`<h3>Recordatorio de oná</h3>
+    <p class="lead">${day ? 'Se agrega un recordatorio al Calendario del iPhone para la oná de este día.' : 'Elegí para qué onot querés recordatorio. Se agregan al Calendario del iPhone y suenan aunque la app esté cerrada.'}</p>
+    <div class="glass card" style="padding:2px 16px;margin:0">${all.map((o, i) => `
+      <div class="sw"><div><b>${esc(o.label)}</b><span>${onahText(o)}</span></div>${all.length > 1 ? `<button class="toggle on" data-o="${i}"></button>` : ''}</div>`).join('')}</div>
+    <label class="f">Cuándo avisar</label>
+    <div class="glass card" style="padding:2px 16px;margin:0">
+      <div class="sw"><div><b>El mismo día</b></div><div style="display:flex;gap:10px;align-items:center">
+        <input type="time" id="oSameT" value="${st.onaSameTime}" style="width:auto;min-height:40px;padding:8px 12px"><button class="toggle ${st.onaSame?'on':''}" id="oSame"></button></div></div>
+      <div class="sw"><div><b>El día anterior</b></div><div style="display:flex;gap:10px;align-items:center">
+        <input type="time" id="oPrevT" value="${st.onaPrevTime}" style="width:auto;min-height:40px;padding:8px 12px"><button class="toggle ${st.onaPrev?'on':''}" id="oPrev"></button></div></div>
+    </div>
+    <label class="f">Texto del recordatorio</label>
+    <input type="text" id="oMsg" maxlength="60" value="${esc(st.msgOna)}" placeholder="Escribí lo que quieras">
+    <div class="chips">${['🌼', '⭐', 'Mañana temprano', 'Recordatorio'].map(x => `<button data-of="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+    <label class="f">Así se va a ver la notificación</label>
+    <div class="glass notif"><div class="ic"><small>${T.parse(t).toLocaleDateString('es-AR',{weekday:'short'}).replace('.','').toUpperCase()}</small><b>${T.parse(t).getDate()}</b></div>
+      <div class="tx"><b id="oPv"></b><span>Calendario</span></div><div class="tm">ahora</div></div>
+    <p class="hint" id="oSum"></p>
+    <button class="btn primary" id="oAdd">${ICON.bell} Agregar al calendario</button>
+    <button class="btn glass" id="oNo">Cancelar</button>
+    <p class="hint">En la pantalla que se abre, tocá “Agregar todo”. No dice “oná” ni el nombre de la app: sólo el texto que elijas.</p>`,
+  root => {
+    const msg = root.querySelector('#oMsg'), sum = root.querySelector('#oSum'), add = root.querySelector('#oAdd');
+    const chosen = () => all.filter((o, i) => pick.has(i));
+    const upd = () => {
+      st.msgOna = msg.value; st.onaSame = root.querySelector('#oSame').classList.contains('on'); st.onaPrev = root.querySelector('#oPrev').classList.contains('on');
+      st.onaSameTime = root.querySelector('#oSameT').value || '08:00'; st.onaPrevTime = root.querySelector('#oPrevT').value || '21:00'; save();
+      root.querySelector('#oPv').textContent = String(st.msgOna || '').trim() || 'Recordatorio';
+      const its = onaItems(chosen());
+      sum.innerHTML = its.length ? 'Se van a agregar: ' + its.map(it => `<b>${fShort(T.iso(it.at))} ${hm(it.at)}</b>`).join(' · ') : 'No hay recordatorios para agregar (elegí al menos una opción con hora futura).';
+      add.disabled = !its.length; add.style.opacity = its.length ? '' : '.5';
+    };
+    root.querySelectorAll('[data-o]').forEach(b => b.onclick = () => { b.classList.toggle('on'); const i = +b.dataset.o; b.classList.contains('on') ? pick.add(i) : pick.delete(i); upd(); });
+    ['#oSame', '#oPrev'].forEach(id => root.querySelector(id).onclick = e => { e.currentTarget.classList.toggle('on'); upd(); });
+    ['#oSameT', '#oPrevT'].forEach(id => root.querySelector(id).onchange = upd);
+    msg.oninput = upd;
+    root.querySelectorAll('[data-of]').forEach(b => b.onclick = () => { msg.value = b.dataset.of; upd(); });
+    root.querySelector('#oNo').onclick = () => closeSheet();
+    add.onclick = () => { const its = onaItems(chosen()); if (!its.length) return; downloadIcs(its); closeSheet(); };
+    upd();
+  });
+}
+
 function sheetConfirm(text, okLabel, fn){
   openSheet(`<h3>${text}</h3><p class="lead">Esta acción no se puede deshacer.</p>
     <button class="btn glass danger" id="cOk">${okLabel}</button><button class="btn glass" id="cNo">Cancelar</button>`,
@@ -777,6 +862,7 @@ app.onclick = e => {
     case 'bed': { last.bedikot = last.bedikot || {}; const k = el.dataset.k; last.bedikot[k] = !last.bedikot[k]; save(); render(); break; }
     case 'settings': sheetSettings(); break;
     case 'alarms': sheetAlarms(last); break;
+    case 'onaRem': sheetOna(el.dataset.d); break;
     case 'sel': selDay = el.dataset.d; if (selDay.slice(0,7) !== calMonth) calMonth = selDay.slice(0,7); render(); break;
     case 'mprev': case 'mnext': { const [y,m] = calMonth.split('-').map(Number); const d = new Date(y, m-1 + (act==='mnext'?1:-1), 1, 12); calMonth = T.iso(d).slice(0,7); render(); break; }
     case 'mtoday': calMonth = T.today().slice(0,7); selDay = T.today(); render(); break;

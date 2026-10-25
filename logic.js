@@ -72,6 +72,9 @@
     msgMorning: 'Recordatorio',  // texto de la alarma de la mañana (lo elige cada mujer)
     msgEvening: 'Recordatorio',  // texto de la alarma de la tarde
     showDay: false,      // agregar el número de día (1/7) al texto
+    msgOna: 'Recordatorio',  // texto del recordatorio de oná
+    onaSame: true, onaSameTime: '08:00',   // avisar el mismo día de la oná
+    onaPrev: false, onaPrevTime: '21:00',  // avisar el día anterior
     day31: false,        // agregar el día 31 a la oná beinonit
     orZarua: false,      // cuidar también la oná anterior (or zarúa)
     lat: -34.6037, lng: -58.3816, city: 'Buenos Aires'
