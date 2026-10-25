@@ -92,9 +92,9 @@ p{color:var(--sub);font-size:16px;line-height:1.45;margin:0 0 14px}
 
   // Vista previa: sólo el texto y la hora de cada recordatorio
   var unesc = function(t){ return t.replace(/\\([,;\\])/g, '$1'); };
-  var evs = ics.split('BEGIN:VEVENT').slice(1).map(function(b){
+  var evs = ics.split(/BEGIN:V(?:EVENT|TODO)/).slice(1).map(function(b){
     var sm = (b.match(/\nSUMMARY:(.*)\r?\n/) || [])[1] || '';
-    var dt = (b.match(/\nDTSTART:(\d{8}T\d{6})Z/) || [])[1] || '';
+    var dt = (b.match(/\n(?:DTSTART|DUE):(\d{8}T\d{6})Z/) || [])[1] || '';
     var d = dt ? new Date(Date.UTC(+dt.slice(0,4), +dt.slice(4,6)-1, +dt.slice(6,8), +dt.slice(9,11), +dt.slice(11,13))) : null;
     return { t: unesc(sm), d: d };
   });
