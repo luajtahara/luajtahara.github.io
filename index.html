@@ -674,15 +674,23 @@ function sheetAlarms(c){
     wireAlarmText(root, S.settings);
     root.querySelector('#aNo').onclick = () => closeSheet();
     root.querySelector('#aAdd').onclick = () => {
-      const blob = new Blob([buildIcs(c)], { type: 'text/calendar;charset=utf-8' });
-      const url = URL.createObjectURL(blob), a = document.createElement('a');
-      a.href = url; a.target = '_blank'; a.rel = 'noopener';
-      if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) a.download = 'recordatorios.ics';
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      openIcs(buildIcs(c));
       closeSheet();
     };
   });
+}
+
+// Abre la página que entrega el archivo al Calendario del iPhone.
+// Desde la app de inicio se abre en Safari, que es el único que lo agrega bien.
+function openIcs(ics){
+  const b64 = btoa(unescape(encodeURIComponent(ics))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const url = 'agregar.html#' + b64;
+  if (navigator.standalone) {
+    const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+  } else {
+    location.href = url;
+  }
 }
 
 // ---------------- Recordatorios de oná ----------------
@@ -698,12 +706,7 @@ function downloadIcs(items){
       'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${txt}`, 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT');
   });
   L.push('END:VCALENDAR');
-  const blob = new Blob([L.join('\r\n') + '\r\n'], { type: 'text/calendar;charset=utf-8' });
-  const url = URL.createObjectURL(blob), a = document.createElement('a');
-  a.href = url; a.target = '_blank'; a.rel = 'noopener';
-  if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) a.download = 'recordatorios.ics';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  openIcs(L.join('\r\n') + '\r\n');
 }
 function onaItems(list){
   const st = S.settings, out = [], now = Date.now();
@@ -832,9 +835,14 @@ function sheetSettings(){
         () => toast('No se pudo obtener la ubicación'));
     };
     root.querySelector('#sExp').onclick = () => {
-      const blob = new Blob([JSON.stringify(S, null, 2)], {type:'application/json'});
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'tahara-copia-' + T.today() + '.json'; a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      const name = 'copia-' + T.today() + '.json', txt = JSON.stringify(S, null, 2);
+      let file = null; try { file = new File([txt], name, { type: 'application/json' }); } catch(e){}
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file] }).catch(()=>{});
+      } else {
+        const a = document.createElement('a'); a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(txt); a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+      }
     };
     const file = root.querySelector('#sFile');
     root.querySelector('#sImp').onclick = () => file.click();

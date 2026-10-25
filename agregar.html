@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#efe9ff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#120f22" media="(prefers-color-scheme: dark)">
+<title>Recordatorios</title>
+<style>
+:root{--text:#1b1530;--sub:rgba(40,30,70,.62);--glass:rgba(255,255,255,.5);--stroke:rgba(255,255,255,.7);--accent:#6d4cff;--accent2:#a46bff;
+  --bg1:#f6f1ff;--bg2:#ffe7f0;--bg3:#e3f4ff;--ok:#18b892}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--text:#f4f1ff;--sub:rgba(235,228,255,.66);--glass:rgba(50,40,90,.5);--stroke:rgba(255,255,255,.18);
+  --accent:#9b82ff;--accent2:#c08cff;--bg1:#100c20;--bg2:#1b1030;--bg3:#0b1a2a}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg1)}
+body{margin:0;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;color:var(--text);
+  background:linear-gradient(160deg,var(--bg1),var(--bg2) 55%,var(--bg3));background-attachment:fixed;-webkit-font-smoothing:antialiased}
+main{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 28px) 16px calc(env(safe-area-inset-bottom) + 32px)}
+h1{font-size:30px;margin:0 0 6px;letter-spacing:-.4px}
+p{color:var(--sub);font-size:16px;line-height:1.45;margin:0 0 14px}
+.card{background:var(--glass);-webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);
+  border:1px solid var(--stroke);border-radius:24px;padding:14px 18px;margin:16px 0;box-shadow:0 14px 34px rgba(60,30,120,.12)}
+.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;font-size:15px}
+.row + .row{border-top:1px solid var(--stroke)}
+.row span{color:var(--sub);white-space:nowrap}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:99px;padding:16px 20px;font:inherit;
+  font-size:17px;font-weight:650;cursor:pointer;color:var(--text);background:var(--glass);border:1px solid var(--stroke);text-decoration:none;margin-top:10px}
+.btn.primary{color:#fff;border:0;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 10px 24px rgba(109,76,255,.35)}
+.steps{margin:0;padding-left:20px;color:var(--sub);font-size:15px;line-height:1.55}
+.steps b{color:var(--text)}
+.small{font-size:13px;color:var(--sub);margin-top:14px;line-height:1.5}
+.ok{color:var(--ok);font-weight:650}
+.card .btn{background:rgba(255,255,255,.55)}
+@media (prefers-color-scheme:dark){.card .btn{background:rgba(255,255,255,.08)}}
+.hide{display:none}
+</style>
+</head>
+<body>
+<main>
+  <h1>Agregar al Calendario</h1>
+  <p id="lead">Preparando los recordatorios…</p>
+
+  <div class="card" id="list"></div>
+
+  <a class="btn primary" id="go" href="#">Agregar al Calendario</a>
+  <p class="small">Se abre el Calendario del iPhone. Tocá <b>“Agregar todo”</b> y listo.</p>
+
+  <div class="card">
+    <b>¿No se abrió el Calendario?</b>
+    <ol class="steps" id="help">
+      <li id="hSafari" class="hide">Estás dentro de la app de la pantalla de inicio, y ahí el iPhone no deja agregar al calendario. Tocá <b>“Copiar link”</b>, abrí <b>Safari</b>, pegalo en la barra de arriba y tocá “Agregar al Calendario”.</li>
+      <li>Probá con <b>“Descargar archivo”</b>. Después abrí la app <b>Archivos</b> → Descargas, tocá <b>recordatorios.ics</b> y elegí “Agregar todo”.</li>
+    </ol>
+    <a class="btn" id="dl" href="#">Descargar archivo</a>
+    <button class="btn" id="copy">Copiar link</button>
+    <p class="small ok hide" id="copied">Link copiado. Pegalo en Safari.</p>
+  </div>
+
+  <a class="btn" id="back" href="./">Volver a la app</a>
+</main>
+<script>
+(function(){
+  'use strict';
+  var lead = document.getElementById('lead');
+  var payload = (location.hash || '').slice(1);
+  function b64dec(s){
+    s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '=';
+    return decodeURIComponent(escape(atob(s)));
+  }
+  var ics = '';
+  try { ics = b64dec(payload); } catch (e) {}
+  if (!/BEGIN:VCALENDAR/.test(ics)) {
+    lead.textContent = 'No hay recordatorios para agregar. Volvé a la app y tocá “Agregar al calendario”.';
+    ['list','go','dl','copy'].forEach(function(id){ document.getElementById(id).classList.add('hide'); });
+    return;
+  }
+
+  // Vista previa: sólo el texto y la hora de cada recordatorio
+  var unesc = function(t){ return t.replace(/\\([,;\\])/g, '$1'); };
+  var evs = ics.split('BEGIN:VEVENT').slice(1).map(function(b){
+    var sm = (b.match(/\nSUMMARY:(.*)\r?\n/) || [])[1] || '';
+    var dt = (b.match(/\nDTSTART:(\d{8}T\d{6})Z/) || [])[1] || '';
+    var d = dt ? new Date(Date.UTC(+dt.slice(0,4), +dt.slice(4,6)-1, +dt.slice(6,8), +dt.slice(9,11), +dt.slice(11,13))) : null;
+    return { t: unesc(sm), d: d };
+  });
+  var fmt = function(d){
+    var w = d.toLocaleDateString('es-AR', { weekday: 'short' }).replace('.', '');
+    return w.charAt(0).toUpperCase() + w.slice(1) + ' ' + d.getDate() + '/' + (d.getMonth()+1) + ' · ' +
+      d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  };
+  var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+  document.getElementById('list').innerHTML = evs.map(function(e){
+    return '<div class="row"><b>' + esc(e.t) + '</b><span>' + (e.d ? fmt(e.d) : '') + '</span></div>';
+  }).join('');
+  lead.textContent = 'Se van a agregar ' + evs.length + ' recordatorio' + (evs.length === 1 ? '' : 's') + ' al Calendario del iPhone. Suenan aunque la app esté cerrada.';
+
+  // 1) Archivo servido como una dirección real (lo arma el service worker): es lo que el iPhone abre en el Calendario
+  var go = document.getElementById('go');
+  var dataUrl = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+  go.href = dataUrl; // respaldo inmediato hasta que el service worker esté listo
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(function(){ return navigator.serviceWorker.ready; }).then(function(){
+      var setSw = function(){ if (navigator.serviceWorker.controller) go.href = 'recordatorios.ics?d=' + payload; };
+      setSw();
+      navigator.serviceWorker.addEventListener('controllerchange', setSw);
+    }).catch(function(){});
+  }
+
+  // 2) Descargar el archivo (para abrirlo desde la app Archivos)
+  var dl = document.getElementById('dl');
+  dl.href = dataUrl; dl.setAttribute('download', 'recordatorios.ics');
+
+  // 3) Dentro de la app de inicio: copiar el link para abrirlo en Safari
+  if (navigator.standalone) document.getElementById('hSafari').classList.remove('hide');
+  document.getElementById('copy').onclick = function(){
+    var url = location.href;
+    var done = function(){ document.getElementById('copied').classList.remove('hide'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function(){ prompt('Copiá este link:', url); });
+    else prompt('Copiá este link:', url);
+  };
+})();
+</script>
+</body>
+</html>
