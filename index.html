@@ -206,7 +206,8 @@ let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) || null; } catch(e) { S = null; }
 if (!S) S = { cycles: [], settings: {} };
 S.settings = Object.assign({}, T.DEFAULTS, S.settings);
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+function store(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+function save(){ store(); if (typeof queueSync === 'function') queueSync(); }
 
 function sorted(){ return S.cycles.slice().sort((a,b)=> a.onset < b.onset ? -1 : 1); }
 
@@ -266,6 +267,7 @@ function viewHoy(){
     return h;
   }
   const c = st.cycle, ci = st.info;
+  if (!pushOn()) h += pushCardHtml(true);
 
   if (st.phase === 'nida'){
     const days = S.settings.minDays;
@@ -327,7 +329,7 @@ function bedikotCard(c, ci, t){
   });
   const done = Object.values(b).filter(Boolean).length;
   return `<div class="sec-title">Bedikot · ${done} de 14</div><div class="glass card"><div class="bed">${rows}</div>
-    <button class="btn glass small" data-act="alarms" style="width:100%;margin-top:14px">${ICON.bell} Agregar recordatorios al calendario</button>
+    <button class="btn glass small" data-act="alarms" style="width:100%;margin-top:14px">${ICON.bell} ${pushOn() && S.settings.pushBedika ? 'Avisos programados · cambiar texto' : 'Agregar recordatorios al calendario'}</button>
     <p class="hint" style="margin:12px 0 0">Si alguna bedika salió con duda, guardá el paño y consultá con el rav.</p></div>`;
 }
 
@@ -528,7 +530,9 @@ function sheetHefsek(){
         `Shkiá: <b>${shkia(v)}</b> · Shivá nekiím: ${fShort(T.add(v,1))} al ${fShort(T.add(v,7))} · Mikve: noche del ${fShort(T.add(v,7))}`; };
     upd(); inp.oninput = upd;
     root.querySelector('#fCancel').onclick = () => closeSheet();
-    root.querySelector('#fSave').onclick = () => { if (!inp.value) return; c.hefsek = inp.value; c.bedikot = {}; save(); render(); toast('Hefsek registrado'); sheetAlarms(c); };
+    root.querySelector('#fSave').onclick = () => { if (!inp.value) return; c.hefsek = inp.value; c.bedikot = {}; save(); render();
+      if (pushOn() && S.settings.pushBedika) { closeSheet(); toast('Hefsek registrado · avisos programados'); syncPush(true); }
+      else { toast('Hefsek registrado'); sheetAlarms(c); } };
   });
 }
 
@@ -577,8 +581,8 @@ function alarmTextFields(st){
     `<div class="glass card" style="padding:2px 16px;margin:14px 0 0"><div class="sw"><div><b>Mostrar el número de día</b><span>Agrega “3/7” al final del texto</span></div><button class="toggle ${st.showDay?'on':''}" id="mDay"></button></div></div>
     <label class="f">Así se va a ver la notificación</label>
     <div class="glass notif"><div class="ic"><small>${T.parse(T.today()).toLocaleDateString('es-AR',{weekday:'short'}).replace('.','').toUpperCase()}</small><b>${T.parse(T.today()).getDate()}</b></div>
-      <div class="tx"><b id="pv"></b><span>Calendario</span></div><div class="tm">ahora</div></div>
-    <p class="hint">No dice “bedika” ni el nombre de la app: sólo el texto que elijas. Podés usar una palabra, un emoji o algo que sólo vos entiendas.</p>`;
+      <div class="tx"><b id="pv"></b><span>${pushOn() ? 'Tahará' : 'Calendario'}</span></div><div class="tm">ahora</div></div>
+    <p class="hint">${pushOn() ? 'No dice “bedika”: sólo el texto que elijas. Arriba se ve el nombre de la app, como en cualquier notificación.' : 'No dice “bedika” ni el nombre de la app: sólo el texto que elijas.'} Podés usar una palabra, un emoji o algo que sólo vos entiendas.</p>`;
 }
 function wireAlarmText(root, st){
   const m = root.querySelector('#mMsg'), t = root.querySelector('#tMsg'), d = root.querySelector('#mDay'), pv = root.querySelector('#pv');
@@ -608,22 +612,121 @@ function sheetAlarms(c){
   const hm = d => d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   const rows = list.filter(b => b.slot === 't').map(b => `<div class="d">Día ${b.day}</div><div class="dt">${fShort(b.date)}</div><div class="dt" style="text-align:right">${S.settings.morning}</div><div class="dt" style="text-align:right">${hm(b.at)}</div>`).join('');
   openSheet(`<h3>Recordatorios de bedika</h3>
-    <p class="lead">Se agregan ${list.length} recordatorios al Calendario del iPhone: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shkiá, durante la shivá nekiím. Suenan aunque la app esté cerrada.</p>
+    <p class="lead">${pushOn() && S.settings.pushBedika ? `Ya están programados como notificaciones: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shkiá, durante la shivá nekiím. Si cambiás el texto, se actualizan solos.` : `Se agregan ${list.length} recordatorios: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shkiá, durante la shivá nekiím. Suenan aunque la app esté cerrada.`}</p>
+    ${pushOn() ? '' : pushCardHtml(true)}
     ${alarmTextFields(S.settings)}
     <label class="f">Horarios</label>
     <div class="glass card" style="padding:14px 16px"><div class="bed" style="grid-template-columns:auto 1fr auto auto;gap:6px 14px">
       <div></div><div></div><div class="dt" style="text-align:right">Mañana</div><div class="dt" style="text-align:right">Tarde</div>${rows}</div></div>
-    <button class="btn primary" id="aAdd">${ICON.bell} Agregar al calendario</button>
-    <button class="btn glass" id="aNo">Ahora no</button>
+    ${pushOn() && S.settings.pushBedika
+      ? `<button class="btn primary" id="aNo">Listo</button><button class="btn glass" id="aAdd">${ICON.bell} Agregar también al Calendario</button>`
+      : `<button class="btn ${pushOn()?'primary':'glass'}" id="aAdd">${ICON.bell} Agregar al Calendario</button><button class="btn glass" id="aNo">Ahora no</button>`}
     <p class="hint">En la pantalla que se abre, seguí los pasos (en iPhone: “Agregar todo”). Si después rehacés el hefsek, borrá estos recordatorios del calendario y agregá las nuevas.</p>`,
   root => {
     wireAlarmText(root, S.settings);
+    const pb = root.querySelector('[data-act="pushOn"]'); if (pb) pb.onclick = async () => { await doActivate(pb); closeSheet(); sheetAlarms(c); };
     root.querySelector('#aNo').onclick = () => closeSheet();
     root.querySelector('#aAdd').onclick = () => {
       openIcs(buildIcs(c));
       closeSheet();
     };
   });
+}
+
+// ---------------- Notificaciones de la app (servidor de avisos) ----------------
+const AVISOS = 'https://avisos.luajtahara.workers.dev';
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const pushNeedsInstall = () => isIOS && !navigator.standalone;
+const pushOn = () => !!(S.push && S.push.id) && pushSupported() && Notification.permission === 'granted';
+const keyBytes = k => { const s = atob(k.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - k.length % 4) % 4)); return Uint8Array.from(s, c => c.charCodeAt(0)); };
+async function api(method, path, body){
+  const r = await fetch(AVISOS + path, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(d.error || ('HTTP ' + r.status)); e.status = r.status; throw e; }
+  return d;
+}
+// Todos los avisos que tocan, calculados en el teléfono: sólo hora + texto
+function planItems(){
+  const st = S.settings, now = Date.now(), out = [];
+  const cy = sorted(), c = cy[cy.length - 1];
+  if (st.pushBedika && c && c.hefsek && !c.mikveDone)
+    bedikaTimes(c).forEach(b => { if (b.at.getTime() > now) out.push({ at: b.at.getTime(), text: alarmText(b.slot, b.day) }); });
+  if (st.pushOna) {
+    const t = T.today();
+    onaItems(T.onot(cy, st).filter(o => o.gDate && T.diff(o.gDate, t) >= 0)).forEach(it => out.push({ at: it.at.getTime(), text: it.text }));
+  }
+  return out.sort((a, b) => a.at - b.at).slice(0, 80);
+}
+let syncTimer = null, syncing = false;
+function queueSync(){ if (!S.push || !S.push.id) return; clearTimeout(syncTimer); syncTimer = setTimeout(() => syncPush(false), 900); }
+async function syncPush(force){
+  if (!pushOn() || syncing) return;
+  const items = planItems(), hash = JSON.stringify(items);
+  if (!force && hash === S.pushHash) return;
+  syncing = true;
+  try {
+    await api('PUT', '/plan', { id: S.push.id, token: S.push.token, items });
+    S.pushHash = hash; store();
+  } catch (e) {
+    if (e.status === 404) { S.push = null; S.pushHash = null; store(); render(); } // el servidor ya no reconoce este teléfono
+  } finally { syncing = false; }
+}
+async function subscribe(){
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) {
+    const { publicKey } = await api('GET', '/vapid');
+    sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(publicKey) });
+  }
+  const r = await api('POST', '/sub', { subscription: sub.toJSON(), id: S.push && S.push.id, token: S.push && S.push.token });
+  S.push = { id: r.id, token: r.token, endpoint: sub.endpoint }; S.pushHash = null; store();
+}
+async function activatePush(){
+  if (!pushSupported()) throw new Error('unsupported');
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') throw new Error('denied');
+  await subscribe();
+  await syncPush(true);
+}
+async function deactivatePush(){
+  try { await api('DELETE', '/sub', { id: S.push.id, token: S.push.token }); } catch (e) {}
+  try { const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (sub) await sub.unsubscribe(); } catch (e) {}
+  S.push = null; S.pushHash = null; store();
+}
+// Al abrir la app: si el iPhone renovó la suscripción, avisarle al servidor; y mandar el plan si cambió
+async function checkPush(){
+  if (!S.push || !S.push.id || !pushSupported() || Notification.permission !== 'granted') return;
+  try {
+    const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription();
+    if (!sub || sub.endpoint !== S.push.endpoint) await subscribe();
+  } catch (e) {}
+  syncPush(false);
+}
+function pushErrorText(e){
+  if (e && e.message === 'denied') return isIOS ? 'Las notificaciones están bloqueadas. Activalas en Ajustes del iPhone → Notificaciones → Tahará.' : 'Las notificaciones están bloqueadas. Activalas en los permisos del navegador para esta app.';
+  if (e && e.message === 'unsupported') return 'Este teléfono no permite notificaciones de apps web.';
+  return 'No se pudo activar. Revisá que tengas internet y probá de nuevo.';
+}
+// Tarjeta para activar / ver el estado de las notificaciones
+function pushCardHtml(compact){
+  if (pushOn()) {
+    const n = planItems(), next = n[0];
+    const hm = d => new Date(d).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+    return `<div class="glass card" style="padding:14px 16px;${compact?'margin-bottom:14px':''}"><div class="row" style="padding:0">${dot('clean','bell')}
+      <div class="t"><b>Notificaciones activadas</b><span>${next ? 'Próximo aviso: ' + fShort(T.iso(new Date(next.at))) + ' a las ' + hm(next.at) + ' · ' + n.length + ' programado' + (n.length===1?'':'s') : 'No hay avisos pendientes por ahora.'}</span></div></div></div>`;
+  }
+  if (!pushSupported() && !pushNeedsInstall()) return compact ? '' : `<div class="glass card note">Este teléfono no permite notificaciones de apps web. Podés usar el Calendario.</div>`;
+  if (pushNeedsInstall()) return `<div class="glass card note" style="${compact?'margin-bottom:14px':''}"><b>Para recibir notificaciones:</b> agregá la app a la pantalla de inicio (Compartir → “Agregar a inicio”) y abrila desde el ícono.</div>`;
+  return `<div class="glass card" style="padding:14px 16px;${compact?'margin-bottom:14px':''}"><div class="row" style="padding:0 0 10px">${dot('ona','bell')}
+    <div class="t"><b>Activá las notificaciones</b><span>Te avisa la bedika y las onot a horario, aunque la app esté cerrada.</span></div></div>
+    <button class="btn primary small" style="width:100%" data-act="pushOn">${ICON.bell} Activar notificaciones</button></div>`;
+}
+async function doActivate(btn){
+  if (btn) { btn.disabled = true; btn.style.opacity = '.6'; }
+  try { await activatePush(); toast('Notificaciones activadas'); }
+  catch (e) { toast(pushErrorText(e)); if (e && e.message !== 'denied' && e.message !== 'unsupported') console.log(e); }
+  finally { if (btn) { btn.disabled = false; btn.style.opacity = ''; } render(); }
 }
 
 // Abre la página que entrega el archivo al Calendario del iPhone.
@@ -687,10 +790,11 @@ function sheetOna(day){
     <div class="chips">${['🌼', '⭐', 'Mañana temprano', 'Recordatorio'].map(x => `<button data-of="${esc(x)}">${esc(x)}</button>`).join('')}</div>
     <label class="f">Así se va a ver la notificación</label>
     <div class="glass notif"><div class="ic"><small>${T.parse(t).toLocaleDateString('es-AR',{weekday:'short'}).replace('.','').toUpperCase()}</small><b>${T.parse(t).getDate()}</b></div>
-      <div class="tx"><b id="oPv"></b><span>Calendario</span></div><div class="tm">ahora</div></div>
+      <div class="tx"><b id="oPv"></b><span>${pushOn() ? 'Tahará' : 'Calendario'}</span></div><div class="tm">ahora</div></div>
     <p class="hint" id="oSum"></p>
-    <button class="btn primary" id="oAdd">${ICON.bell} Agregar al calendario</button>
-    <button class="btn glass" id="oNo">Cancelar</button>
+    ${pushOn() && st.pushOna ? `<div class="glass card note" style="margin:12px 0 0">Las onot ya se avisan con notificaciones, con estos horarios y este texto. Los cambios se guardan solos.</div>
+      <button class="btn primary" id="oNo">Listo</button><button class="btn glass" id="oAdd">${ICON.bell} Agregar también al Calendario</button>`
+    : `<button class="btn primary" id="oAdd">${ICON.bell} Agregar al Calendario</button><button class="btn glass" id="oNo">Cancelar</button>`}
     <p class="hint">En la pantalla que se abre, seguí los pasos (en iPhone: “Agregar todo”). No dice “oná” ni el nombre de la app: sólo el texto que elijas.</p>`,
   root => {
     const msg = root.querySelector('#oMsg'), sum = root.querySelector('#oSum'), add = root.querySelector('#oAdd');
@@ -714,6 +818,27 @@ function sheetOna(day){
   });
 }
 
+function pushSettingsHtml(st){
+  if (!pushOn()) return pushCardHtml(false);
+  return pushCardHtml(false) + `<div class="glass card" style="padding:2px 16px;margin:10px 0 0">
+    <div class="sw"><div><b>Bedikot</b><span>Mañana y antes de la shkiá</span></div><button class="toggle ${st.pushBedika?'on':''}" data-ptg="pushBedika"></button></div>
+    <div class="sw"><div><b>Onot</b><span>Con los horarios de “Recordatorio de oná”</span></div><button class="toggle ${st.pushOna?'on':''}" data-ptg="pushOna"></button></div></div>
+    <div class="btns" style="margin-top:10px"><button class="btn glass small" style="flex:1" id="pTest">Probar ahora</button><button class="btn glass small danger" style="flex:1" id="pOff">Desactivar</button></div>`;
+}
+function wirePushSettings(root, st){
+  const box = root.querySelector('#pushBox');
+  const refresh = () => { box.innerHTML = pushSettingsHtml(st); wire(); };
+  const wire = () => {
+    const on = box.querySelector('[data-act="pushOn"]'); if (on) on.onclick = async () => { await doActivate(on); refresh(); };
+    box.querySelectorAll('[data-ptg]').forEach(b => b.onclick = () => { b.classList.toggle('on'); st[b.dataset.ptg] = b.classList.contains('on'); save(); });
+    const tb = box.querySelector('#pTest'); if (tb) tb.onclick = async () => {
+      try { const r = await api('POST', '/test', { id: S.push.id, token: S.push.token, text: alarmText('m', 1) }); toast(r.ok ? 'Enviado: te llega en unos segundos' : 'No se pudo enviar la prueba'); }
+      catch (e) { toast('No se pudo enviar. Revisá tu conexión.'); } };
+    const ob = box.querySelector('#pOff'); if (ob) ob.onclick = async () => { await deactivatePush(); toast('Notificaciones desactivadas'); refresh(); render(); };
+  };
+  wire();
+}
+
 function sheetConfirm(text, okLabel, fn){
   openSheet(`<h3>${text}</h3><p class="lead">Esta acción no se puede deshacer.</p>
     <button class="btn glass danger" id="cOk">${okLabel}</button><button class="btn glass" id="cNo">Cancelar</button>`,
@@ -732,6 +857,8 @@ function sheetSettings(){
       <div class="sw"><div><b>Cuidar también el día 31</b><span>Además de la oná beinonit del día 30</span></div><button class="toggle ${st.day31?'on':''}" data-tg="day31"></button></div>
       <div class="sw"><div><b>Or zarúa</b><span>Separarse también en la oná anterior</span></div><button class="toggle ${st.orZarua?'on':''}" data-tg="orZarua"></button></div>
     </div>
+    <label class="f">Notificaciones</label>
+    <div id="pushBox">${pushSettingsHtml(st)}</div>
     <label class="f">Recordatorios de bedika</label>
     <div class="glass card" style="padding:2px 16px;margin:0">
       <div class="sw"><div><b>Bedika de la mañana</b><span>Hora del recordatorio</span></div><input type="time" id="sMorning" value="${st.morning}" style="width:auto;min-height:40px;padding:8px 12px"></div>
@@ -750,6 +877,7 @@ function sheetSettings(){
     <button class="btn primary" id="sClose">Listo</button>`,
   root => {
     wireSeg(root, 'min', v => { st.minDays = +v; save(); });
+    wirePushSettings(root, st);
     wireSeg(root, 'before', v => { st.beforeShkia = +v; save(); });
     wireAlarmText(root, st);
     root.querySelector('#sMorning').onchange = e => { if (e.target.value) { st.morning = e.target.value; save(); } };
@@ -796,6 +924,7 @@ app.onclick = e => {
     case 'bed': { last.bedikot = last.bedikot || {}; const k = el.dataset.k; last.bedikot[k] = !last.bedikot[k]; save(); render(); break; }
     case 'settings': sheetSettings(); break;
     case 'alarms': sheetAlarms(last); break;
+    case 'pushOn': doActivate(el); break;
     case 'onaRem': sheetOna(el.dataset.d); break;
     case 'sel': selDay = el.dataset.d; if (selDay.slice(0,7) !== calMonth) calMonth = selDay.slice(0,7); render(); break;
     case 'mprev': case 'mnext': { const [y,m] = calMonth.split('-').map(Number); const d = new Date(y, m-1 + (act==='mnext'?1:-1), 1, 12); calMonth = T.iso(d).slice(0,7); render(); break; }
@@ -810,10 +939,10 @@ app.addEventListener('touchend', e => { if (tx===null) return; const dx = e.chan
   if (Math.abs(dx) > 50){ const [y,m] = calMonth.split('-').map(Number); calMonth = T.iso(new Date(y, m-1 + (dx<0?1:-1), 1, 12)).slice(0,7); render(); } });
 
 // Refrescar al volver a la app (cambia el día)
-document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(); checkPush(); } });
 
 render();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(() => checkPush()).catch(()=>{});
 })();
 </script>
 </body>

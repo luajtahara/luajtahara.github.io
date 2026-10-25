@@ -1,0 +1,13 @@
+name = "avisos"
+main = "worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+account_id = "cc2431a44e7635a676c37d7f47013561"
+
+[triggers]
+crons = ["* * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "avisos"
+database_id = "__D1_ID__"
