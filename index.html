@@ -6,13 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Tahará">
+<meta name="apple-mobile-web-app-title" id="appTitle" content="Tahará">
 <meta name="theme-color" content="#efe9ff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#120f22" media="(prefers-color-scheme: dark)">
 <title>Tahará</title>
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" id="favIcon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" id="touchIcon" href="icon-180.png">
 <style>
 :root{
   --text:#1b1530; --sub:rgba(40,30,70,.62); --faint:rgba(40,30,70,.38);
@@ -175,6 +174,15 @@ input[type=date],input[type=time],input[type=text],input[type=number]{width:100%
 .notif .ic small{font-size:8px;color:#e5443a;font-weight:700}.notif .ic b{font-size:16px;color:#111}
 .notif .tx{flex:1;min-width:0}.notif .tx b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.notif .tx span{font-size:13px;color:var(--sub)}
 .notif .tm{font-size:12px;color:var(--faint);align-self:flex-start}
+.brand{display:flex;gap:16px;align-items:center;padding:16px;border-radius:24px;background:linear-gradient(160deg,#6f8fd8,#b48ad6 55%,#e8a3b8)}
+.brand .tile{flex:0 0 64px;text-align:center}
+.brand .tile img{width:64px;height:64px;border-radius:15px;display:block;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.brand .tile span{display:block;color:#fff;font-size:12px;margin-top:5px;text-shadow:0 1px 2px rgba(0,0,0,.35);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:76px;margin-left:-6px;margin-right:-6px}
+.brand p{margin:0;color:#fff;font-size:13px;line-height:1.4;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.picks{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.picks button{aspect-ratio:1;border-radius:14px;border:2px solid transparent;font-size:24px;cursor:pointer;padding:0;display:grid;place-items:center;background:var(--glass);overflow:hidden}
+.picks button.on{border-color:var(--accent)}
+.picks button img{width:100%;height:100%;display:block}
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 12px);transform:translate(-50%,-150%);z-index:60;padding:12px 18px;border-radius:99px;font-size:15px;font-weight:600;transition:transform .35s cubic-bezier(.2,.9,.25,1)}
 .toast.show{transform:translate(-50%,0)}
 .empty-illu{font-size:15px;color:var(--sub);line-height:1.5}
@@ -205,6 +213,53 @@ try { S = JSON.parse(localStorage.getItem(KEY)) || null; } catch(e) { S = null; 
 if (!S) S = { cycles: [], settings: {} };
 S.settings = Object.assign({}, T.DEFAULTS, S.settings);
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+
+// ---------------- Nombre e ícono personalizables ----------------
+const DEF_NAME = 'Tahará';
+const COLORS = [['#c9b6ff','#8f6bff'], ['#ffd1e0','#f27aa0'], ['#cdeeff','#4ea7f0'], ['#d6f5e3','#3dbb85'], ['#ffe6c7','#f29b4b'], ['#e6e6ea','#5b5b66']];
+const EMOJIS = ['', '🌸', '🌙', '☀️', '🌿', '💧', '🦋', '✨', '🌷', '📖', '⭐', '🍃'];
+// La personalización viaja en el link para que la app instalada la recuerde
+(function readBrandFromUrl(){
+  try {
+    const q = new URLSearchParams(location.search).get('a');
+    if (!q) return;
+    const d = JSON.parse(decodeURIComponent(escape(atob(q))));
+    if (typeof d.n === 'string') S.settings.appName = d.n.slice(0, 30);
+    if (typeof d.e === 'string') S.settings.appEmoji = d.e;
+    if (Number.isInteger(d.c)) S.settings.appColor = d.c;
+    save();
+  } catch(e){}
+})();
+const appName = () => (String(S.settings.appName || '').trim() || DEF_NAME);
+const isCustom = () => appName() !== DEF_NAME || !!S.settings.appEmoji;
+function makeIcon(size){
+  const e = S.settings.appEmoji;
+  if (!e) return null;
+  const cv = document.createElement('canvas'); cv.width = cv.height = size;
+  const g = cv.getContext('2d'), col = COLORS[S.settings.appColor || 0] || COLORS[0];
+  const gr = g.createLinearGradient(0, 0, size, size); gr.addColorStop(0, col[0]); gr.addColorStop(1, col[1]);
+  g.fillStyle = gr; g.fillRect(0, 0, size, size);
+  const hl = g.createLinearGradient(0, 0, 0, size); hl.addColorStop(0, 'rgba(255,255,255,.45)'); hl.addColorStop(.5, 'rgba(255,255,255,0)');
+  g.fillStyle = hl; g.fillRect(0, 0, size, size);
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = Math.round(size * .56) + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  g.fillText(e, size / 2, size * .54);
+  return cv.toDataURL('image/png');
+}
+function applyBrand(){
+  const n = appName(), ic = makeIcon(180);
+  document.title = n;
+  document.getElementById('appTitle').setAttribute('content', n);
+  document.getElementById('touchIcon').href = ic || 'icon-180.png';
+  document.getElementById('favIcon').href = ic || 'icon.svg';
+  document.getElementById('favIcon').type = ic ? 'image/png' : 'image/svg+xml';
+  try {
+    const url = isCustom()
+      ? './?a=' + btoa(unescape(encodeURIComponent(JSON.stringify({ n: S.settings.appName || '', e: S.settings.appEmoji || '', c: S.settings.appColor || 0 }))))
+      : './';
+    history.replaceState(null, '', url);
+  } catch(e){}
+}
 function sorted(){ return S.cycles.slice().sort((a,b)=> a.onset < b.onset ? -1 : 1); }
 
 let tab = 'hoy';
@@ -418,7 +473,7 @@ function viewHist(){
 const app = document.getElementById('app');
 function render(){
   const t = T.today();
-  const titles = {hoy:'Tahará', cal:'Calendario', hist:'Historial'};
+  const titles = {hoy:esc(appName()), cal:'Calendario', hist:'Historial'};
   app.innerHTML = `<header class="top"><div><h1>${titles[tab]}</h1>
     <div class="date"><b>${fLong(t)}</b><br>${T.hebLabel(t)} · <span class="he">${hebHe(t)}</span></div></div>
     <button class="round glass" data-act="settings" aria-label="Ajustes">${ICON.gear}</button></header>` +
@@ -629,7 +684,16 @@ function sheetConfirm(text, okLabel, fn){
 
 function sheetSettings(){
   const st = S.settings;
-  openSheet(`<h3>Ajustes</h3><p class="lead">Definilos con tu rav según el minhag que siguen.</p>
+  openSheet(`<h3>Ajustes</h3>
+    <label class="f">Nombre e ícono de la app</label>
+    <div class="brand"><div class="tile"><img id="bImg" alt=""><span id="bName"></span></div>
+      <p>Así se ve en la pantalla de inicio. Elegí un nombre y un ícono que no llamen la atención.</p></div>
+    <input type="text" id="bIn" maxlength="30" value="${esc(st.appName || '')}" placeholder="${DEF_NAME}" style="margin-top:12px">
+    <div class="chips">${['Mi agenda','Notas','Diario','Plantas','🌸',DEF_NAME].map(x => `<button data-bn="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+    <div class="picks" id="bEmo" style="margin-top:14px">${EMOJIS.map(x => `<button data-e="${x}" class="${(st.appEmoji||'')===x?'on':''}">${x || '<img src="icon-180.png" alt="">'}</button>`).join('')}</div>
+    <div class="picks" id="bCol" style="margin-top:8px">${COLORS.map((c,i) => `<button data-c="${i}" class="${(st.appColor||0)===i?'on':''}" style="background:linear-gradient(135deg,${c[0]},${c[1]})"></button>`).join('')}</div>
+    <div class="glass card note" style="margin:12px 0 0"><b>Para que se vea en la pantalla de inicio:</b> después de elegir, abrí este link en Safari → Compartir → “Agregar a inicio”. Si ya tenías la app instalada, primero hacé “Exportar” (abajo), agregá la nueva, importá la copia en la nueva y recién ahí borrá la vieja.</div>
+    <p class="lead" style="margin-top:22px">El resto de los ajustes definilos con tu rav según el minhag que siguen.</p>
     <label class="f">Días mínimos hasta el hefsek</label>
     <div class="seg" data-seg="min">${[4,5,6,7].map(n=>`<button data-v="${n}" class="${st.minDays==n?'on':''}">${n}</button>`).join('')}</div>
     <p class="hint">Contando el día en que empezó. Muchos ashkenazím esperan 5; algunas comunidades sefaradíes, 4.</p>
@@ -656,6 +720,18 @@ function sheetSettings(){
     <button class="btn primary" id="sClose">Listo</button>`,
   root => {
     wireSeg(root, 'min', v => { st.minDays = +v; save(); });
+    const bIn = root.querySelector('#bIn');
+    const bUpd = () => {
+      st.appName = bIn.value; save(); applyBrand();
+      root.querySelector('#bImg').src = makeIcon(128) || 'icon-180.png';
+      root.querySelector('#bName').textContent = appName();
+      root.querySelector('#bCol').style.display = st.appEmoji ? '' : 'none';
+    };
+    bIn.oninput = bUpd;
+    root.querySelectorAll('[data-bn]').forEach(b => b.onclick = () => { bIn.value = b.dataset.bn === DEF_NAME ? '' : b.dataset.bn; bUpd(); });
+    root.querySelectorAll('#bEmo button').forEach(b => b.onclick = () => { st.appEmoji = b.dataset.e; root.querySelectorAll('#bEmo button').forEach(x => x.classList.toggle('on', x === b)); bUpd(); });
+    root.querySelectorAll('#bCol button').forEach(b => b.onclick = () => { st.appColor = +b.dataset.c; root.querySelectorAll('#bCol button').forEach(x => x.classList.toggle('on', x === b)); bUpd(); });
+    bUpd();
     wireSeg(root, 'before', v => { st.beforeShkia = +v; save(); });
     wireAlarmText(root, st);
     root.querySelector('#sMorning').onchange = e => { if (e.target.value) { st.morning = e.target.value; save(); } };
@@ -674,7 +750,7 @@ function sheetSettings(){
     const file = root.querySelector('#sFile');
     root.querySelector('#sImp').onclick = () => file.click();
     file.onchange = () => { const f = file.files[0]; if (!f) return; f.text().then(txt => {
-      try { const d = JSON.parse(txt); if (!Array.isArray(d.cycles)) throw 0; S = d; S.settings = Object.assign({}, T.DEFAULTS, S.settings); save(); closeSheet(); render(); toast('Copia importada'); }
+      try { const d = JSON.parse(txt); if (!Array.isArray(d.cycles)) throw 0; S = d; S.settings = Object.assign({}, T.DEFAULTS, S.settings); save(); applyBrand(); closeSheet(); render(); toast('Copia importada'); }
       catch(e){ toast('El archivo no es válido'); } }); };
     root.querySelector('#sWipe').onclick = () => sheetConfirm('¿Borrar todos los datos?', 'Borrar todo', () => { S = { cycles: [], settings: Object.assign({}, T.DEFAULTS) }; save(); toast('Datos borrados'); });
     root.querySelector('#sClose').onclick = () => { closeSheet(); render(); };
@@ -712,6 +788,7 @@ app.addEventListener('touchend', e => { if (tx===null) return; const dx = e.chan
 // Refrescar al volver a la app (cambia el día)
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
 
+applyBrand();
 render();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
