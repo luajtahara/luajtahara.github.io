@@ -615,7 +615,7 @@ function sheetAlarms(c){
       <div></div><div></div><div class="dt" style="text-align:right">Mañana</div><div class="dt" style="text-align:right">Tarde</div>${rows}</div></div>
     <button class="btn primary" id="aAdd">${ICON.bell} Agregar al calendario</button>
     <button class="btn glass" id="aNo">Ahora no</button>
-    <p class="hint">En la pantalla que se abre, tocá “Agregar todo”. Si después rehacés el hefsek, borrá estos recordatorios del calendario y agregá las nuevas.</p>`,
+    <p class="hint">En la pantalla que se abre, seguí los pasos (en iPhone: “Agregar todo”). Si después rehacés el hefsek, borrá estos recordatorios del calendario y agregá las nuevas.</p>`,
   root => {
     wireAlarmText(root, S.settings);
     root.querySelector('#aNo').onclick = () => closeSheet();
@@ -631,7 +631,7 @@ function sheetAlarms(c){
 function openIcs(ics){
   const b64 = btoa(unescape(encodeURIComponent(ics))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const url = 'agregar.html#' + b64;
-  if (navigator.standalone) {
+  if (navigator.standalone && !/Android/i.test(navigator.userAgent)) {
     const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener';
     document.body.appendChild(a); a.click(); a.remove();
   } else {
@@ -691,7 +691,7 @@ function sheetOna(day){
     <p class="hint" id="oSum"></p>
     <button class="btn primary" id="oAdd">${ICON.bell} Agregar al calendario</button>
     <button class="btn glass" id="oNo">Cancelar</button>
-    <p class="hint">En la pantalla que se abre, tocá “Agregar todo”. No dice “oná” ni el nombre de la app: sólo el texto que elijas.</p>`,
+    <p class="hint">En la pantalla que se abre, seguí los pasos (en iPhone: “Agregar todo”). No dice “oná” ni el nombre de la app: sólo el texto que elijas.</p>`,
   root => {
     const msg = root.querySelector('#oMsg'), sum = root.querySelector('#oSum'), add = root.querySelector('#oAdd');
     const chosen = () => all.filter((o, i) => pick.has(i));

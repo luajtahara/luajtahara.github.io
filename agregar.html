@@ -34,6 +34,8 @@ p{color:var(--sub);font-size:16px;line-height:1.45;margin:0 0 14px}
 .card .btn{background:rgba(255,255,255,.55)}
 @media (prefers-color-scheme:dark){.card .btn{background:rgba(255,255,255,.08)}}
 .hide{display:none}
+.btn .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.3);font-size:14px}
+.btn small{display:block;font-weight:500;font-size:13px;opacity:.85}
 </style>
 </head>
 <body>
@@ -43,10 +45,22 @@ p{color:var(--sub);font-size:16px;line-height:1.45;margin:0 0 14px}
 
   <div class="card" id="list"></div>
 
+  <div id="ios">
   <a class="btn primary" id="go" href="#">Agregar al Calendario</a>
   <p class="small">Se abre el Calendario del iPhone. Tocá <b>“Agregar todo”</b> y listo.</p>
+  </div>
 
-  <div class="card">
+  <div id="android" class="hide">
+    <div id="aBtns"></div>
+    <p class="small">Cada botón abre Google Calendar con el recordatorio ya cargado: tocá <b>Guardar</b>. Si querés que avise justo a la hora, antes de guardar cambiá la <b>notificación</b> a “a la hora del evento”.</p>
+    <div class="card">
+      <b>¿Tenés Samsung u otro calendario?</b>
+      <p class="small" style="margin-top:6px">Podés agregar todos juntos con la hora exacta: tocá “Descargar archivo” y abrilo con tu calendario.</p>
+      <a class="btn" id="dlA" href="#">Descargar archivo</a>
+    </div>
+  </div>
+
+  <div class="card" id="iosHelp">
     <b>¿No se abrió el Calendario?</b>
     <ol class="steps" id="help">
       <li id="hSafari" class="hide">Estás dentro de la app de la pantalla de inicio, y ahí el iPhone no deja agregar al calendario. Tocá <b>“Copiar link”</b>, abrí <b>Safari</b>, pegalo en la barra de arriba y tocá “Agregar al Calendario”.</li>
@@ -110,6 +124,52 @@ p{color:var(--sub);font-size:16px;line-height:1.45;margin:0 0 14px}
   // 2) Descargar el archivo (para abrirlo desde la app Archivos)
   var dl = document.getElementById('dl');
   dl.href = dataUrl; dl.setAttribute('download', 'recordatorios.ics');
+
+  // ---------- Android: Google Calendar, con la semana agrupada en un evento que se repite ----------
+  if (/Android/i.test(navigator.userAgent)) {
+    document.getElementById('ios').classList.add('hide');
+    document.getElementById('iosHelp').classList.add('hide');
+    document.getElementById('list').classList.add('hide');
+    document.getElementById('android').classList.remove('hide');
+    var dlA = document.getElementById('dlA'); dlA.href = dataUrl; dlA.setAttribute('download', 'recordatorios.ics');
+    var tz = 'America/Argentina/Buenos_Aires';
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || tz; } catch (e) {}
+    if (tz === 'America/Buenos_Aires') tz = 'America/Argentina/Buenos_Aires';
+    var p2 = function(n){ return (n < 10 ? '0' : '') + n; };
+    var loc = function(d){ return d.getFullYear() + p2(d.getMonth()+1) + p2(d.getDate()) + 'T' + p2(d.getHours()) + p2(d.getMinutes()) + '00'; };
+    var dayKey = function(d){ return Math.round(new Date(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5); };
+    // Agrupar por texto + mañana/tarde; si son días seguidos, un solo evento que se repite
+    var groups = {};
+    evs.forEach(function(e){ if (!e.d) return; var k = e.t + '|' + (e.d.getHours() < 12 ? 'm' : 't'); (groups[k] = groups[k] || []).push(e); });
+    var items = [];
+    Object.keys(groups).forEach(function(k){
+      var g = groups[k].sort(function(a, b){ return a.d - b.d; });
+      var consecutive = g.length > 1 && g.every(function(e, i){ return i === 0 || dayKey(e.d) - dayKey(g[i-1].d) === 1; });
+      if (consecutive) {
+        // la hora más temprana de la semana, para que siempre sea antes de la shkiá
+        var mins = Math.min.apply(null, g.map(function(e){ return e.d.getHours() * 60 + e.d.getMinutes(); }));
+        var st = new Date(g[0].d); st.setHours(Math.floor(mins / 60), mins % 60, 0, 0);
+        items.push({ t: g[0].t, d: st, n: g.length });
+      } else g.forEach(function(e){ items.push({ t: e.t, d: e.d, n: 1 }); });
+    });
+    items.sort(function(a, b){ return a.d - b.d; });
+    var hm = function(d){ return p2(d.getHours()) + ':' + p2(d.getMinutes()); };
+    document.getElementById('aBtns').innerHTML = items.map(function(it, i){
+      var en = new Date(it.d.getTime() + 10 * 60000);
+      var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+        '&text=' + encodeURIComponent(it.t) +
+        '&dates=' + loc(it.d) + '/' + loc(en) +
+        '&ctz=' + encodeURIComponent(tz) +
+        (it.n > 1 ? '&recur=' + encodeURIComponent('RRULE:FREQ=DAILY;COUNT=' + it.n) : '');
+      var when = it.n > 1 ? 'Todos los días a las ' + hm(it.d) + ' · ' + it.n + ' días desde el ' + it.d.getDate() + '/' + (it.d.getMonth()+1)
+                          : fmt(it.d);
+      return '<a class="btn primary" target="_blank" rel="noopener" href="' + url + '"><span class="n">' + (i+1) + '</span><span>' +
+        esc(it.t) + '<small>' + when + '</small></span></a>';
+    }).join('');
+    lead.textContent = items.length === 1 ? 'Tocá el botón para agregar el recordatorio.' :
+      'Tocá cada botón (' + items.length + ') para agregar los recordatorios. Suenan aunque no haya señal.';
+    return;
+  }
 
   // 3) Dentro de la app de inicio: copiar el link para abrirlo en Safari
   if (navigator.standalone) document.getElementById('hSafari').classList.remove('hide');
