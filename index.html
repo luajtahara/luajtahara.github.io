@@ -426,7 +426,7 @@ function viewCal(){
     <div style="text-align:center"><h3>${title}</h3><small>${hebRange}</small></div>
     <button class="round glass" data-act="mnext">${ICON.right}</button></div>
     <div class="grid">${g}</div>
-    <div class="legend"><span><i style="background:var(--nida)"></i>Nidá</span><span><i style="background:var(--clean)"></i>Días limpios</span>
+    <div class="legend"><span><i style="background:var(--nida)"></i>Nidá</span><span><i style="background:var(--clean)"></i>Shivá nekiím</span>
     <span><i style="background:var(--mikve)"></i>Mikve</span><span><i style="background:var(--ona);border-radius:50%"></i>Oná</span></div></div>`;
   h += dayDetail(selDay, mk[selDay] || {onot:[]});
   if (calMonth !== t.slice(0,7)) h += `<button class="btn glass" data-act="mtoday">Volver a hoy</button>`;
@@ -439,7 +439,7 @@ function dayDetail(s, x){
   else if (x.nida) rows += `<div class="row">${dot('nida','drop')}<div class="t"><b>${x.projected?'Nidá (estimado)':'Nidá'}</b><span>${x.projected?'Hasta que se haga el hefsek':'Separados'}</span></div></div>`;
   if (x.hefsekFrom) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Primer día posible para el hefsek</b><span>Antes de la shkiá (${shkia(s)})</span></div></div>`;
   if (x.hefsek) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Hefsek tahará</b><span>Antes de la shkiá (${shkia(s)})</span></div></div>`;
-  if (x.clean) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Día limpio ${x.clean} de 7</b><span>Bedikot a la mañana y a la tarde</span></div></div>`;
+  if (x.clean) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Shivá nekiím · día ${x.clean} de 7</b><span>Bedikot a la mañana y a la tarde</span></div></div>`;
   if (x.mikve) rows += `<div class="row">${dot('mikve','wave')}<div class="t"><b>Noche de mikve</b><span>Después de tzet hakojavim</span></div></div>`;
   x.onot.forEach(o => rows += `<div class="row">${dot('ona',o.onah==='night'?'moon':'sun')}<div class="t"><b>${esc(o.label)}</b><span>${onahText(o)}</span></div></div>`);
   return `<div class="glass card fade" style="padding:16px 16px 6px">
