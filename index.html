@@ -311,7 +311,7 @@ function viewHoy(){
     h += `<div class="glass card hero fade" style="flex-direction:column;align-items:flex-start">
       <span class="pill p-ok">Bienvenida</span>
       <h2>Todo en un solo lugar</h2>
-      <p>Registrá cuándo empezó el período y la app calcula el hefsek tahará, los siete días limpios, la noche de mikve y las onot perishá, con fecha hebrea y gregoriana.</p>
+      <p>Registrá cuándo empezó el período y la app calcula el hefsek tahará, la shivá nekiím, la noche de mikve y las onot perishá, con fecha hebrea y gregoriana.</p>
     </div>
     <button class="btn primary" data-act="new">${ICON.plus} Registrar inicio del período</button>
     <p class="hint" style="text-align:center;margin-top:14px">Los datos quedan guardados sólo en este teléfono.</p>`;
@@ -333,13 +333,13 @@ function viewHoy(){
   else if (st.phase === 'hefsek'){
     h += `<div class="glass card hero fade">${ring(0,'var(--clean)','0','de 7')}
       <div><span class="pill p-clean">Hefsek hecho</span><h2>Mañana empieza el día 1</h2>
-      <p>Los siete días limpios van del ${fShort(ci.clean[0])} al ${fShort(ci.clean[6])}.</p></div></div>`;
+      <p>La shivá nekiím va del ${fShort(ci.clean[0])} al ${fShort(ci.clean[6])}.</p></div></div>`;
     h += mikveCard(ci) + bedikotCard(c, ci, t) + `<button class="btn glass" data-act="stain">Volví a ver / hubo una mancha</button>`;
   }
   else if (st.phase === 'shiva'){
     h += `<div class="glass card hero fade">${ring(st.day/7,'var(--clean)',st.day,'de 7')}
       <div><span class="pill p-clean">Shivá nekiím</span><h2>${st.tonight ? 'Hoy a la noche: mikve' : 'Día ' + st.day + ' de 7'}</h2>
-      <p>${st.tonight ? 'Último día limpio. La tevilá es esta noche, después de tzet hakojavim.' : 'Faltan ' + (7-st.day) + ' día' + (7-st.day===1?'':'s') + ' para la mikve.'}</p></div></div>`;
+      <p>${st.tonight ? 'Último día de shivá nekiím. La tevilá es esta noche, después de tzet hakojavim.' : 'Faltan ' + (7-st.day) + ' día' + (7-st.day===1?'':'s') + ' para la mikve.'}</p></div></div>`;
     h += bedikotCard(c, ci, t) + mikveCard(ci);
     if (st.tonight) h += `<button class="btn primary" data-act="mikveDone">${ICON.wave} Ya fui a la mikve</button>`;
     h += `<button class="btn glass" data-act="stain">Volví a ver / hubo una mancha</button>`;
@@ -565,7 +565,7 @@ function sheetCycle(c){
 function sheetHefsek(){
   const cy = sorted(), c = cy[cy.length-1], ci = T.cycleInfo(c, S.settings), t = T.today();
   const def = T.diff(t, ci.earliestHefsek) >= 0 ? t : ci.earliestHefsek;
-  openSheet(`<h3>Hefsek tahará</h3><p class="lead">Se hace antes de la shkiá. Al día siguiente empieza el primero de los siete días limpios.</p>
+  openSheet(`<h3>Hefsek tahará</h3><p class="lead">Se hace antes de la shkiá. Al día siguiente empieza el primer día de shivá nekiím.</p>
     <label class="f">Fecha del hefsek</label><input type="date" id="fHef" value="${def}" min="${c.onset}">
     <p class="hint" id="fHint"></p>
     <div style="margin-top:22px"><button class="btn primary" id="fSave">${ICON.check} Confirmar hefsek</button><button class="btn glass" id="fCancel">Cancelar</button></div>`,
@@ -574,7 +574,7 @@ function sheetHefsek(){
     const upd = () => { const v = inp.value; if (!v) return;
       const early = T.diff(v, ci.earliestHefsek) < 0;
       root.querySelector('#fHint').innerHTML = (early ? `<b style="color:var(--nida)">Atención:</b> es antes del día ${S.settings.minDays} (${fShort(ci.earliestHefsek)}). Consultá con el rav.<br>` : '') +
-        `Shkiá: <b>${shkia(v)}</b> · Siete días limpios: ${fShort(T.add(v,1))} al ${fShort(T.add(v,7))} · Mikve: noche del ${fShort(T.add(v,7))}`; };
+        `Shkiá: <b>${shkia(v)}</b> · Shivá nekiím: ${fShort(T.add(v,1))} al ${fShort(T.add(v,7))} · Mikve: noche del ${fShort(T.add(v,7))}`; };
     upd(); inp.oninput = upd;
     root.querySelector('#fCancel').onclick = () => closeSheet();
     root.querySelector('#fSave').onclick = () => { if (!inp.value) return; c.hefsek = inp.value; c.bedikot = {}; save(); render(); toast('Hefsek registrado'); sheetAlarms(c); };
@@ -583,9 +583,9 @@ function sheetHefsek(){
 
 function sheetStain(){
   const cy = sorted(), c = cy[cy.length-1];
-  openSheet(`<h3>Volví a ver</h3><p class="lead">Si apareció sangre o una mancha durante los días limpios, primero consultá con el rav. Según lo que te diga:</p>
+  openSheet(`<h3>Volví a ver</h3><p class="lead">Si apareció sangre o una mancha durante la shivá nekiím, primero consultá con el rav. Según lo que te diga:</p>
     <button class="btn glass" id="sRe">${ICON.check} Hacer un nuevo hefsek</button>
-    <p class="hint" style="margin:6px 8px 14px">Se reinician los siete días limpios. El inicio del período queda igual.</p>
+    <p class="hint" style="margin:6px 8px 14px">Se reinicia la shivá nekiím. El inicio del período queda igual.</p>
     <button class="btn glass" id="sNew">${ICON.drop} Es un período nuevo</button>
     <p class="hint" style="margin:6px 8px 14px">Se registra un nuevo inicio y se recalculan las onot.</p>
     <button class="btn glass" id="sCancel">Cancelar</button>`,
@@ -657,7 +657,7 @@ function sheetAlarms(c){
   const hm = d => d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   const rows = list.filter(b => b.slot === 't').map(b => `<div class="d">Día ${b.day}</div><div class="dt">${fShort(b.date)}</div><div class="dt" style="text-align:right">${S.settings.morning}</div><div class="dt" style="text-align:right">${hm(b.at)}</div>`).join('');
   openSheet(`<h3>Recordatorios de bedika</h3>
-    <p class="lead">Se agregan ${list.length} recordatorios al Calendario del iPhone: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shkiá, durante los siete días limpios. Suenan aunque la app esté cerrada.</p>
+    <p class="lead">Se agregan ${list.length} recordatorios al Calendario del iPhone: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shkiá, durante la shivá nekiím. Suenan aunque la app esté cerrada.</p>
     ${alarmTextFields(S.settings)}
     <label class="f">Horarios</label>
     <div class="glass card" style="padding:14px 16px"><div class="bed" style="grid-template-columns:auto 1fr auto auto;gap:6px 14px">
