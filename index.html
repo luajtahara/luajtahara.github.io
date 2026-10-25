@@ -379,7 +379,7 @@ function bedikotCard(c, ci, t){
   });
   const done = Object.values(b).filter(Boolean).length;
   return `<div class="sec-title">Bedikot · ${done} de 14</div><div class="glass card"><div class="bed">${rows}</div>
-    <button class="btn glass small" data-act="alarms" style="width:100%;margin-top:14px">${ICON.bell} Agregar alarmas al calendario</button>
+    <button class="btn glass small" data-act="alarms" style="width:100%;margin-top:14px">${ICON.bell} Agregar recordatorios al calendario</button>
     <p class="hint" style="margin:12px 0 0">Si alguna bedika salió con duda, guardá el paño y consultá con el rav.</p></div>`;
 }
 
@@ -621,8 +621,8 @@ function alarmTextFields(st){
   const f = (slot, id, label, val) => `<label class="f">${label}</label>
     <input type="text" id="${id}" maxlength="60" value="${esc(val)}" placeholder="Escribí lo que quieras">
     <div class="chips">${SUG[slot].map(x => `<button data-fill="${id}" data-v="${esc(x)}">${esc(x)}</button>`).join('')}</div>`;
-  return f('m', 'mMsg', 'Texto de la alarma de la mañana', st.msgMorning) +
-    f('t', 'tMsg', 'Texto de la alarma de la tarde', st.msgEvening) +
+  return f('m', 'mMsg', 'Texto del recordatorio de la mañana', st.msgMorning) +
+    f('t', 'tMsg', 'Texto del recordatorio de la tarde', st.msgEvening) +
     `<div class="glass card" style="padding:2px 16px;margin:14px 0 0"><div class="sw"><div><b>Mostrar el número de día</b><span>Agrega “3/7” al final del texto</span></div><button class="toggle ${st.showDay?'on':''}" id="mDay"></button></div></div>
     <label class="f">Así se va a ver la notificación</label>
     <div class="glass notif"><div class="ic"><small>${T.parse(T.today()).toLocaleDateString('es-AR',{weekday:'short'}).replace('.','').toUpperCase()}</small><b>${T.parse(T.today()).getDate()}</b></div>
@@ -656,15 +656,15 @@ function sheetAlarms(c){
   const list = bedikaTimes(c);
   const hm = d => d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   const rows = list.filter(b => b.slot === 't').map(b => `<div class="d">Día ${b.day}</div><div class="dt">${fShort(b.date)}</div><div class="dt" style="text-align:right">${S.settings.morning}</div><div class="dt" style="text-align:right">${hm(b.at)}</div>`).join('');
-  openSheet(`<h3>Alarmas de bedika</h3>
-    <p class="lead">Se agregan ${list.length} alarmas al Calendario del iPhone: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shkiá, durante los siete días limpios. Suenan aunque la app esté cerrada.</p>
+  openSheet(`<h3>Recordatorios de bedika</h3>
+    <p class="lead">Se agregan ${list.length} recordatorios al Calendario del iPhone: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shkiá, durante los siete días limpios. Suenan aunque la app esté cerrada.</p>
     ${alarmTextFields(S.settings)}
     <label class="f">Horarios</label>
     <div class="glass card" style="padding:14px 16px"><div class="bed" style="grid-template-columns:auto 1fr auto auto;gap:6px 14px">
       <div></div><div></div><div class="dt" style="text-align:right">Mañana</div><div class="dt" style="text-align:right">Tarde</div>${rows}</div></div>
     <button class="btn primary" id="aAdd">${ICON.bell} Agregar al calendario</button>
     <button class="btn glass" id="aNo">Ahora no</button>
-    <p class="hint">En la pantalla que se abre, tocá “Agregar todo”. Si después rehacés el hefsek, borrá estas alarmas del calendario y agregá las nuevas.</p>`,
+    <p class="hint">En la pantalla que se abre, tocá “Agregar todo”. Si después rehacés el hefsek, borrá estos recordatorios del calendario y agregá las nuevas.</p>`,
   root => {
     wireAlarmText(root, S.settings);
     root.querySelector('#aNo').onclick = () => closeSheet();
@@ -706,9 +706,9 @@ function sheetSettings(){
       <div class="sw"><div><b>Cuidar también el día 31</b><span>Además de la oná beinonit del día 30</span></div><button class="toggle ${st.day31?'on':''}" data-tg="day31"></button></div>
       <div class="sw"><div><b>Or zarúa</b><span>Separarse también en la oná anterior</span></div><button class="toggle ${st.orZarua?'on':''}" data-tg="orZarua"></button></div>
     </div>
-    <label class="f">Alarmas de bedika</label>
+    <label class="f">Recordatorios de bedika</label>
     <div class="glass card" style="padding:2px 16px;margin:0">
-      <div class="sw"><div><b>Bedika de la mañana</b><span>Hora de la alarma</span></div><input type="time" id="sMorning" value="${st.morning}" style="width:auto;min-height:40px;padding:8px 12px"></div>
+      <div class="sw"><div><b>Bedika de la mañana</b><span>Hora del recordatorio</span></div><input type="time" id="sMorning" value="${st.morning}" style="width:auto;min-height:40px;padding:8px 12px"></div>
       <div class="sw" style="flex-direction:column;align-items:stretch"><div><b>Bedika de la tarde</b><span>Minutos antes de la shkiá</span></div>
         <div class="seg" data-seg="before" style="margin-top:10px">${[10,15,20,30].map(n=>`<button data-v="${n}" class="${st.beforeShkia==n?'on':''}">${n} min</button>`).join('')}</div></div>
     </div>
