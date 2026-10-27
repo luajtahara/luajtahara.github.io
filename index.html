@@ -24,6 +24,7 @@
   --clean:#18b892; --clean-bg:rgba(24,184,146,.18);
   --mikve:#2f86ff; --mikve-bg:rgba(47,134,255,.18);
   --ona:#f0a020; --ona-bg:rgba(240,160,32,.2);
+  --night:rgba(43,42,92,.07); --night-line:rgba(43,42,92,.16);
   --bg1:#f6f1ff; --bg2:#ffe7f0; --bg3:#e3f4ff;
   --blob1:#c7b4ff; --blob2:#ffb8cf; --blob3:#9fe0ff;
 }
@@ -35,6 +36,7 @@
   --accent:#9b82ff; --accent2:#c08cff;
   --bg1:#100c20; --bg2:#1b1030; --bg3:#0b1a2a;
   --blob1:#4b2fa8; --blob2:#7a2452; --blob3:#145a7a;
+  --night:rgba(0,0,20,.28); --night-line:rgba(255,255,255,.12);
 }}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%}
@@ -120,18 +122,27 @@ header.top{display:flex;align-items:flex-start;justify-content:space-between;mar
 .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .wd{text-align:center;font-size:12px;font-weight:600;color:var(--faint);padding-bottom:4px}
 .wd.sh{color:var(--accent)}
-.day{aspect-ratio:1/1.12;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:pointer;border:1.5px solid transparent;font-variant-numeric:tabular-nums}
-.day .g{font-size:17px;font-weight:600}
-.day .h{font-size:11px;color:var(--sub);font-family:"Arial Hebrew","SF Hebrew",system-ui;margin-top:1px}
+.day{aspect-ratio:1/1.18;border-radius:14px;display:flex;flex-direction:column;position:relative;cursor:pointer;border:1.5px solid transparent;overflow:hidden;font-variant-numeric:tabular-nums}
+.day .top{flex:1.85;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.day .bot{flex:1;display:flex;align-items:center;justify-content:center;gap:2px;background:var(--night);border-top:1px dashed var(--night-line)}
+.day .g{font-size:17px;font-weight:600;line-height:1.05}
+.day .h{font-size:10px;color:var(--sub);margin-top:1px}
+.day .bot .n{font-size:10px;color:var(--sub);font-weight:500}
+.day .bot svg{width:10px;height:10px;color:var(--ona)}
 .day.out{opacity:.28}
-.day.nida{background:var(--nida-bg)} .day.nida .g{color:var(--nida)}
-.day.proj{background:repeating-linear-gradient(135deg,var(--nida-bg) 0 6px,transparent 6px 11px)}
-.day.clean{background:var(--clean-bg)} .day.clean .g{color:var(--clean)}
-.day.mikve{background:var(--mikve-bg)} .day.mikve .g{color:var(--mikve)}
-.day.ona{background:var(--ona-bg)} .day.ona .g{color:var(--ona)}
-.day .oi{order:3;width:12px;height:12px;color:var(--ona);margin-top:1px;line-height:0}
-.day .oi svg{width:12px;height:12px;display:block}
-.day .g{order:1} .day .h{order:2}
+.day .st-nida{background:var(--nida-bg)} .day .top.st-nida .g{color:var(--nida)}
+.day .st-proj{background:repeating-linear-gradient(135deg,var(--nida-bg) 0 6px,transparent 6px 11px)}
+.day .st-clean{background:var(--clean-bg)} .day .top.st-clean .g{color:var(--clean)}
+.day .st-mikve{background:var(--mikve-bg)} .day .top.st-mikve .g{color:var(--mikve)}
+.day .st-ona{background:var(--ona-bg)} .day .top.st-ona .g{color:var(--ona)}
+.day .bot.st-nida,.day .bot.st-clean,.day .bot.st-mikve,.day .bot.st-ona,.day .bot.st-proj{box-shadow:inset 0 0 0 100px var(--night)}
+.day .bot.st-ona .n{color:var(--ona);font-weight:700}
+.day .ring{box-shadow:inset 0 0 0 2px var(--ona)}
+.day .bot.ring{box-shadow:inset 0 0 0 2px var(--ona), inset 0 0 0 100px var(--night)}
+.day.today{border-color:var(--accent)}
+.day.sel{box-shadow:inset 0 0 0 2px var(--accent)}
+.day.sel .top:not([class*="st-"]){background:var(--glass-strong)}
+.day .hf{position:absolute;top:4px;right:4px;width:5px;height:5px;border-radius:50%;background:var(--clean)}
 .ona-b{padding:12px 2px}
 .ona-b + .ona-b{border-top:1px solid var(--stroke-soft)}
 .ona-b.past{opacity:.45}
@@ -148,15 +159,15 @@ header.top{display:flex;align-items:flex-start;justify-content:space-between;mar
 .ona-bar{height:6px;border-radius:9px;display:block}
 .ona-bar.n{background:linear-gradient(90deg,#f0a020,#2b2a5c 25%,#2b2a5c 75%,#f7c95c)}
 .ona-bar.d{background:linear-gradient(90deg,#f7c95c,#f0a020 50%,#f7c95c)}
-.day.onaRing{box-shadow:inset 0 0 0 2px var(--ona)}
-.day.today{border-color:var(--accent)}
-.day.sel{box-shadow:inset 0 0 0 2px var(--accent)} .day.sel:not(.nida):not(.proj):not(.clean):not(.mikve):not(.ona){background:var(--glass-strong)}
-.day .marks{position:absolute;bottom:5px;display:flex;gap:3px}
-.day .marks i{width:5px;height:5px;border-radius:50%}
 .legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:13px;color:var(--sub);margin-top:14px;padding:0 4px}
 .legend span{display:flex;align-items:center;gap:6px}
 .legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
 .legend .lg-ic svg{width:14px;height:14px;color:var(--ona)}
+.lg-split{display:flex;gap:12px;align-items:center;margin:12px 4px 2px;font-size:13px;color:var(--sub);line-height:1.4}
+.lg-split b{color:var(--text);font-weight:600}
+.lg-split .mini{flex:0 0 38px;height:42px;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;border:1px solid var(--stroke-soft);font-size:9px;text-align:center}
+.lg-split .mini b{flex:1.85;display:grid;place-items:center;font-weight:600;color:var(--sub)}
+.lg-split .mini i{flex:1;display:grid;place-items:center;font-style:normal;background:var(--night);border-top:1px dashed var(--night-line);color:var(--sub)}
 
 /* tab bar */
 nav.tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 14px);display:flex;gap:4px;padding:6px;border-radius:99px;z-index:20}
@@ -394,6 +405,23 @@ function onotCard(cy, t){
 }
 
 // ---------------- Pantalla: Calendario ----------------
+// Cada fecha del calendario se parte en dos: arriba el día (hasta la shkiá), abajo la noche,
+// que ya es el día hebreo siguiente. Estado por "día hebreo" (clave = fecha de su parte de día).
+function halfMarks(cy, st, t){
+  const day = {}, mikveNight = {}, onaTop = {}, onaBot = {};
+  cy.forEach((c, idx) => {
+    const ci = T.cycleInfo(c, st), last = idx === cy.length - 1, sh = T.startHd(c);
+    const end = c.hefsek || (last ? (T.diff(t, ci.earliestHefsek) > 0 ? t : ci.earliestHefsek) : T.add(sh, 6));
+    for (let d = sh; T.diff(end, d) >= 0; d = T.add(d, 1)) day[d] = (!c.hefsek && T.diff(d, t) > 0) ? 'proj' : 'nida';
+    if (c.hefsek) { ci.clean.forEach(d => { day[d] = 'clean'; }); mikveNight[T.add(ci.mikve, 1)] = true; }
+  });
+  T.onot(cy, st).forEach(o => { if (!o.hd) return; if (o.onah === 'night') onaBot[o.gDate] = true; else onaTop[o.hd] = true; });
+  return s => {
+    const n = T.add(s, 1);
+    return { top: day[s] || '', bot: mikveNight[n] ? 'mikve' : (day[n] || ''), onaTop: !!onaTop[s], onaBot: !!onaBot[s] };
+  };
+}
+
 // Rango del mes que se muestra, según el calendario principal elegido
 const hebMode = () => S.settings.calMode === 'heb';
 function monthRange(a){
@@ -409,7 +437,7 @@ const inRange = (s, r) => T.diff(s, r.first) >= 0 && T.diff(r.last, s) >= 0;
 function shiftMonth(dir){ const r = monthRange(calAnchor); calAnchor = dir > 0 ? T.add(r.last, 1) : T.add(r.first, -1); }
 const gMonthShort = s => cap(T.parse(s).toLocaleDateString('es-AR',{month:'short'}).replace('.',''));
 function viewCal(){
-  const cy = sorted(), mk = T.marks(cy, S.settings), t = T.today(), heb = hebMode();
+  const cy = sorted(), mk = T.marks(cy, S.settings), t = T.today(), heb = hebMode(), half = halfMarks(cy, S.settings, t);
   const r = monthRange(calAnchor), startW = T.parse(r.first).getDay();
   const start = T.add(r.first, -startW);
   const len = T.diff(r.last, r.first) + 1, weeks = Math.ceil((startW + len)/7);
@@ -428,18 +456,18 @@ function viewCal(){
     const s = T.add(start,i), x = mk[s] || {onot:[]}, inM = inRange(s, r);
     let cls = 'day';
     if (!inM) cls += ' out';
-    if (x.mikve) cls += ' mikve'; else if (x.clean) cls += ' clean'; else if (x.nida) cls += x.projected ? ' proj' : ' nida';
-    if (x.onot.length) cls += (x.mikve || x.clean || x.nida) ? ' onaRing' : ' ona';
     if (s===t) cls += ' today';
     if (s===selDay) cls += ' sel';
-    let dots = '';
-    if (x.start) dots += '<i style="background:var(--nida)"></i>';
-    if (x.hefsek || x.hefsekFrom) dots += '<i style="background:var(--clean)"></i>';
-    const gd = +s.slice(8), hd = T.heb(s).day;
+    const hv = half(s);
+    const tc = (hv.top ? 'st-' + hv.top : (hv.onaTop ? 'st-ona' : '')) + (hv.top && hv.onaTop ? ' ring' : '');
+    const bc = (hv.bot ? 'st-' + hv.bot : (hv.onaBot ? 'st-ona' : '')) + (hv.bot && hv.onaBot ? ' ring' : '');
+    const gd = +s.slice(8), hd = T.heb(s).day, hn = T.heb(T.add(s, 1)).day;
     const big = heb ? hd : gd;
     const small = heb ? (gd === 1 ? '1 ' + gMonthShort(s) : gd) : (hd === 1 ? '1 ' + T.heb(s).month.slice(0,3) : hd);
-    const oi = x.onot.length ? `<span class="oi">${x.onot.some(o => o.onah === 'night') ? ICON.moon : ICON.sun}</span>` : '';
-    g += `<div class="${cls}" data-act="sel" data-d="${s}">${oi}<span class="g">${big}</span><span class="h">${small}</span><span class="marks">${dots}</span></div>`;
+    const sunIc = hv.onaTop ? ICON.sun.replace('<svg','<svg width="10" height="10" style="vertical-align:-1px;margin-right:1px;color:var(--ona)"') : '';
+    g += `<div class="${cls}" data-act="sel" data-d="${s}">
+      <div class="top ${tc}">${x.hefsekFrom ? '<i class="hf"></i>' : ''}<span class="g">${big}</span><span class="h">${sunIc}${small}</span></div>
+      <div class="bot ${bc}">${hv.onaBot ? ICON.moon : ''}<span class="n">${hn}</span></div></div>`;
   }
   let h = `<div class="seg" style="margin:0 0 12px" data-seg="calmode"><button data-v="greg" class="${heb?'':'on'}">Gregoriano</button><button data-v="heb" class="${heb?'on':''}">Hebreo</button></div>
     <div class="glass card fade"><div class="cal-head">
@@ -449,7 +477,8 @@ function viewCal(){
     <div class="grid">${g}</div>
     <div class="legend"><span><i style="background:var(--nida)"></i>Nidá</span><span><i style="background:var(--clean)"></i>Shivá nekiím</span>
     <span><i style="background:var(--mikve)"></i>Mikve</span><span><i style="background:var(--ona)"></i>Oná</span>
-    <span class="lg-ic">${ICON.moon} de noche</span><span class="lg-ic">${ICON.sun} de día</span></div></div>`;
+    <span class="lg-ic">${ICON.moon} de noche</span><span class="lg-ic">${ICON.sun} de día</span></div>
+    <div class="lg-split"><div class="mini"><b>Día</b><i>Noche</i></div><span>Cada día está partido en dos: <b>arriba el día</b> hasta la shkiá, <b>abajo la noche</b>, que ya es el día hebreo siguiente (el número de abajo).</span></div></div>`;
   h += dayDetail(selDay, mk[selDay] || {onot:[]});
   if (!inRange(t, r)) h += `<button class="btn glass" data-act="mtoday">Volver a hoy</button>`;
   return h;
