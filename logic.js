@@ -46,7 +46,7 @@
   function hebLabel(s) { const h = heb(s); return h.day + ' de ' + h.month + ' ' + h.year; }
 
   // ---------- Shkiá (puesta del sol, algoritmo tipo SunCalc) ----------
-  function sunset(s, lat, lng) {
+  function sunset(s, lat, lng, rise) {
     const rad = Math.PI / 180, J0 = 0.0009, e = rad * 23.4397;
     const d = parse(s).valueOf() / 864e5 - 0.5 + 2440588 - 2451545;
     const lw = rad * -lng, phi = rad * lat;
@@ -59,10 +59,14 @@
     const h = -0.833 * rad;
     const w = Math.acos((Math.sin(h) - Math.sin(phi) * Math.sin(dec)) / (Math.cos(phi) * Math.cos(dec)));
     if (isNaN(w)) return null;
-    const a = J0 + (w + lw) / (2 * Math.PI) + n;
-    const J = 2451545 + a + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
-    return new Date((J + 0.5 - 2440588) * 864e5);
+    const corr = 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+    const Jset = 2451545 + J0 + (w + lw) / (2 * Math.PI) + n + corr;
+    const Jnoon = 2451545 + J0 + lw / (2 * Math.PI) + n + corr;
+    const toDate = J => new Date((J + 0.5 - 2440588) * 864e5);
+    return rise ? toDate(Jnoon - (Jset - Jnoon)) : toDate(Jset);
   }
+  // Amanecer (salida del sol)
+  const sunrise = (s, lat, lng) => sunset(s, lat, lng, true);
 
   // ---------- Ajustes por defecto (a definir con el rav) ----------
   const DEFAULTS = {
@@ -76,6 +80,7 @@
     onaSame: true, onaSameTime: '08:00',   // avisar el mismo día de la oná
     onaPrev: false, onaPrevTime: '21:00',  // avisar el día anterior
     pushBedika: true, pushOna: true,       // qué avisar por notificación
+    calMode: 'greg',     // calendario principal: 'greg' (gregoriano) o 'heb' (hebreo)
     day31: false,        // agregar el día 31 a la oná beinonit
     orZarua: false,      // cuidar también la oná anterior (or zarúa)
     lat: -34.6037, lng: -58.3816, city: 'Buenos Aires'
@@ -180,5 +185,5 @@
     return m;
   }
 
-  G.TL = { iso, parse, add, diff, today, heb, hebLabel, gematria, sunset, DEFAULTS, startHd, onot, cycleInfo, status, marks };
+  G.TL = { iso, parse, add, diff, today, heb, hebLabel, gematria, sunset, sunrise, DEFAULTS, startHd, onot, cycleInfo, status, marks };
 })(typeof window !== 'undefined' ? window : globalThis);

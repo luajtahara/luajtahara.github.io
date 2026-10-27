@@ -129,6 +129,24 @@ header.top{display:flex;align-items:flex-start;justify-content:space-between;mar
 .day.clean{background:var(--clean-bg)} .day.clean .g{color:var(--clean)}
 .day.mikve{background:var(--mikve-bg)} .day.mikve .g{color:var(--mikve)}
 .day.ona{background:var(--ona-bg)} .day.ona .g{color:var(--ona)}
+.day .oi{order:3;width:12px;height:12px;color:var(--ona);margin-top:1px;line-height:0}
+.day .oi svg{width:12px;height:12px;display:block}
+.day .g{order:1} .day .h{order:2}
+.ona-b{padding:12px 2px}
+.ona-b + .ona-b{border-top:1px solid var(--stroke-soft)}
+.ona-b.past{opacity:.45}
+.ona-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ona-h b{font-size:16px;font-weight:620}
+.ona-pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 10px 4px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:.4px}
+.ona-pill svg{width:14px;height:14px}
+.ona-pill.n{background:#2b2a5c;color:#ffd66b} .ona-pill.d{background:var(--ona-bg);color:var(--ona)}
+.ona-t{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;margin-top:10px}
+.ona-t small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint);font-weight:650}
+.ona-t b{display:block;font-size:15px;font-weight:650;white-space:nowrap}
+.ona-t span{display:block;font-size:12px;color:var(--sub)}
+.ona-bar{height:6px;border-radius:9px;display:block}
+.ona-bar.n{background:linear-gradient(90deg,#f0a020,#2b2a5c 25%,#2b2a5c 75%,#f7c95c)}
+.ona-bar.d{background:linear-gradient(90deg,#f7c95c,#f0a020 50%,#f7c95c)}
 .day.onaRing{box-shadow:inset 0 0 0 2px var(--ona)}
 .day.today{border-color:var(--accent)}
 .day.sel{box-shadow:inset 0 0 0 2px var(--accent)} .day.sel:not(.nida):not(.proj):not(.clean):not(.mikve):not(.ona){background:var(--glass-strong)}
@@ -137,6 +155,7 @@ header.top{display:flex;align-items:flex-start;justify-content:space-between;mar
 .legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:13px;color:var(--sub);margin-top:14px;padding:0 4px}
 .legend span{display:flex;align-items:center;gap:6px}
 .legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+.legend .lg-ic svg{width:14px;height:14px;color:var(--ona)}
 
 /* tab bar */
 nav.tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 14px);display:flex;gap:4px;padding:6px;border-radius:99px;z-index:20}
@@ -212,7 +231,7 @@ function save(){ store(); if (typeof queueSync === 'function') queueSync(); }
 function sorted(){ return S.cycles.slice().sort((a,b)=> a.onset < b.onset ? -1 : 1); }
 
 let tab = 'hoy';
-let calMonth = T.today().slice(0,7);
+let calAnchor = T.today(); // una fecha dentro del mes que se muestra
 let selDay = T.today();
 
 // ---------------- Formatos ----------------
@@ -222,6 +241,7 @@ const fLong = s => cap(T.parse(s).toLocaleDateString('es-AR',{weekday:'long', da
 const hebShort = s => { const h = T.heb(s); return h.day + ' ' + h.month; };
 const hebHe = s => { const h = T.heb(s); return T.gematria(h.day) + ' ' + h.monthHe; };
 function shkia(s){ const d = T.sunset(s, S.settings.lat, S.settings.lng); return d ? d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hourCycle:'h23'}) : '—'; }
+function amanecer(s){ const d = T.sunrise(s, S.settings.lat, S.settings.lng); return d ? d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hourCycle:'h23'}) : '—'; }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 const ICON = {
@@ -248,8 +268,22 @@ function ring(frac, color, big, small){
 // Descripción de una oná
 function onahText(o){
   if (!o.hd) return o.note || '';
-  if (o.onah === 'night') return `Noche del ${fShort(o.gDate)} (desde la shkiá ${shkia(o.gDate)}) hasta el amanecer`;
-  return `Día ${fShort(o.hd)}, del amanecer a la shkiá (${shkia(o.hd)})`;
+  if (o.onah === 'night') return `De noche: desde el ${fShort(o.gDate)} a las ${shkia(o.gDate)} hasta el ${fShort(o.hd)} al amanecer (${amanecer(o.hd)})`;
+  return `De día: el ${fShort(o.hd)}, desde el amanecer (${amanecer(o.hd)}) hasta las ${shkia(o.hd)}`;
+}
+// Bloque claro: ícono + "de noche/de día" + cuándo empieza y cuándo termina
+function onaBlock(o, past){
+  if (!o.hd) return `<div class="row">${dot('ona','sun')}<div class="t"><b>${esc(o.label)}</b><span>${esc(o.note || '')}</span></div></div>`;
+  const night = o.onah === 'night';
+  const from = night ? `${fShort(o.gDate)} · ${shkia(o.gDate)}` : `${fShort(o.hd)} · ${amanecer(o.hd)}`;
+  const to = night ? `${fShort(o.hd)} · ${amanecer(o.hd)}` : `${fShort(o.hd)} · ${shkia(o.hd)}`;
+  return `<div class="ona-b${past ? ' past' : ''}">
+    <div class="ona-h"><span class="ona-pill ${night ? 'n' : 'd'}">${night ? ICON.moon : ICON.sun}${night ? 'De noche' : 'De día'}</span><b>${esc(o.label)}</b></div>
+    <div class="ona-t">
+      <div><small>Empieza</small><b>${from}</b><span>${night ? 'a la shkiá' : 'al amanecer'}</span></div>
+      <i class="ona-bar ${night ? 'n' : 'd'}"></i>
+      <div style="text-align:right"><small>Termina</small><b>${to}</b><span>${night ? 'al amanecer' : 'a la shkiá'}</span></div>
+    </div></div>`;
 }
 
 // ---------------- Pantalla: Hoy ----------------
@@ -337,31 +371,45 @@ function onotCard(cy, t){
   const list = T.onot(cy, S.settings);
   if (!list.length) return '';
   let h = `<div class="sec-title">Onot perishá</div><div class="glass card" style="padding:4px 16px">`;
-  list.forEach(o => {
-    const past = o.gDate && T.diff(o.gDate, t) < 0;
-    h += `<div class="row" style="${past?'opacity:.45':''}">${dot('ona', o.onah==='night'?'moon':'sun')}
-      <div class="t"><b>${esc(o.label)}</b><span>${onahText(o)}</span></div>
-      <div class="r">${o.hd ? hebShort(o.hd) + '<br><span class="he">' + hebHe(o.hd) + '</span>' : ''}</div></div>`;
-  });
+  list.forEach(o => { h += onaBlock(o, o.gDate && T.diff(o.gDate, t) < 0); });
   if (list.some(o => o.gDate && T.diff(o.gDate, t) >= 0))
     h += `<button class="btn glass small" data-act="onaRem" style="width:100%;margin:6px 0 12px">${ICON.bell} Agregar recordatorios de onot</button>`;
   return h + `</div>`;
 }
 
 // ---------------- Pantalla: Calendario ----------------
+// Rango del mes que se muestra, según el calendario principal elegido
+const hebMode = () => S.settings.calMode === 'heb';
+function monthRange(a){
+  if (hebMode()) {
+    let f = a; while (T.heb(f).day !== 1) f = T.add(f, -1);
+    let l = T.add(f, 28); while (T.heb(T.add(l, 1)).day !== 1) l = T.add(l, 1);
+    return { first: f, last: l };
+  }
+  const [y, m] = a.split('-').map(Number);
+  return { first: T.iso(new Date(y, m-1, 1, 12)), last: T.iso(new Date(y, m, 0, 12)) };
+}
+const inRange = (s, r) => T.diff(s, r.first) >= 0 && T.diff(r.last, s) >= 0;
+function shiftMonth(dir){ const r = monthRange(calAnchor); calAnchor = dir > 0 ? T.add(r.last, 1) : T.add(r.first, -1); }
+const gMonthShort = s => cap(T.parse(s).toLocaleDateString('es-AR',{month:'short'}).replace('.',''));
 function viewCal(){
-  const cy = sorted(), mk = T.marks(cy, S.settings), t = T.today();
-  const [y,m] = calMonth.split('-').map(Number);
-  const first = new Date(y, m-1, 1, 12), startW = first.getDay();
-  const start = T.add(T.iso(first), -startW);
-  const last = new Date(y, m, 0, 12);
-  const weeks = Math.ceil((startW + last.getDate())/7);
-  const h1 = T.heb(T.iso(first)), h2 = T.heb(T.iso(last));
-  const hebRange = h1.key===h2.key ? `${h1.month} ${h1.year}` : `${h1.month} – ${h2.month} ${h2.year}`;
-  const title = cap(first.toLocaleDateString('es-AR',{month:'long'})) + ' ' + y;
+  const cy = sorted(), mk = T.marks(cy, S.settings), t = T.today(), heb = hebMode();
+  const r = monthRange(calAnchor), startW = T.parse(r.first).getDay();
+  const start = T.add(r.first, -startW);
+  const len = T.diff(r.last, r.first) + 1, weeks = Math.ceil((startW + len)/7);
+  let title, sub;
+  if (heb) {
+    const h = T.heb(r.first); title = `${h.month} ${h.year}`;
+    const g1 = T.parse(r.first), g2 = T.parse(r.last), mo = d => cap(d.toLocaleDateString('es-AR',{month:'long'}));
+    sub = g1.getMonth() === g2.getMonth() ? `${mo(g1)} ${g1.getFullYear()}` : `${mo(g1)} – ${mo(g2)} ${g2.getFullYear()}`;
+  } else {
+    const f = T.parse(r.first); title = cap(f.toLocaleDateString('es-AR',{month:'long'})) + ' ' + f.getFullYear();
+    const h1 = T.heb(r.first), h2 = T.heb(r.last);
+    sub = h1.key===h2.key ? `${h1.month} ${h1.year}` : `${h1.month} – ${h2.month} ${h2.year}`;
+  }
   let g = ['D','L','M','M','J','V','S'].map((d,i)=>`<div class="wd ${i===6?'sh':''}">${i===6?'Sh':d}</div>`).join('');
   for (let i=0;i<weeks*7;i++){
-    const s = T.add(start,i), x = mk[s] || {onot:[]}, inM = +s.slice(5,7) === m;
+    const s = T.add(start,i), x = mk[s] || {onot:[]}, inM = inRange(s, r);
     let cls = 'day';
     if (!inM) cls += ' out';
     if (x.mikve) cls += ' mikve'; else if (x.clean) cls += ' clean'; else if (x.nida) cls += x.projected ? ' proj' : ' nida';
@@ -371,17 +419,23 @@ function viewCal(){
     let dots = '';
     if (x.start) dots += '<i style="background:var(--nida)"></i>';
     if (x.hefsek || x.hefsekFrom) dots += '<i style="background:var(--clean)"></i>';
-    g += `<div class="${cls}" data-act="sel" data-d="${s}"><span class="g">${+s.slice(8)}</span><span class="h">${T.heb(s).day}</span><span class="marks">${dots}</span></div>`;
+    const gd = +s.slice(8), hd = T.heb(s).day;
+    const big = heb ? hd : gd;
+    const small = heb ? (gd === 1 ? '1 ' + gMonthShort(s) : gd) : (hd === 1 ? '1 ' + T.heb(s).month.slice(0,3) : hd);
+    const oi = x.onot.length ? `<span class="oi">${x.onot.some(o => o.onah === 'night') ? ICON.moon : ICON.sun}</span>` : '';
+    g += `<div class="${cls}" data-act="sel" data-d="${s}">${oi}<span class="g">${big}</span><span class="h">${small}</span><span class="marks">${dots}</span></div>`;
   }
-  let h = `<div class="glass card fade"><div class="cal-head">
+  let h = `<div class="seg" style="margin:0 0 12px" data-seg="calmode"><button data-v="greg" class="${heb?'':'on'}">Gregoriano</button><button data-v="heb" class="${heb?'on':''}">Hebreo</button></div>
+    <div class="glass card fade"><div class="cal-head">
     <button class="round glass" data-act="mprev">${ICON.left}</button>
-    <div style="text-align:center"><h3>${title}</h3><small>${hebRange}</small></div>
+    <div style="text-align:center"><h3>${title}</h3><small>${sub}</small></div>
     <button class="round glass" data-act="mnext">${ICON.right}</button></div>
     <div class="grid">${g}</div>
     <div class="legend"><span><i style="background:var(--nida)"></i>Nidá</span><span><i style="background:var(--clean)"></i>Shivá nekiím</span>
-    <span><i style="background:var(--mikve)"></i>Mikve</span><span><i style="background:var(--ona)"></i>Oná</span></div></div>`;
+    <span><i style="background:var(--mikve)"></i>Mikve</span><span><i style="background:var(--ona)"></i>Oná</span>
+    <span class="lg-ic">${ICON.moon} de noche</span><span class="lg-ic">${ICON.sun} de día</span></div></div>`;
   h += dayDetail(selDay, mk[selDay] || {onot:[]});
-  if (calMonth !== t.slice(0,7)) h += `<button class="btn glass" data-act="mtoday">Volver a hoy</button>`;
+  if (!inRange(t, r)) h += `<button class="btn glass" data-act="mtoday">Volver a hoy</button>`;
   return h;
 }
 
@@ -393,7 +447,7 @@ function dayDetail(s, x){
   if (x.hefsek) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Hefsek tahará</b><span>Antes de la shkiá (${shkia(s)})</span></div></div>`;
   if (x.clean) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Shivá nekiím · día ${x.clean} de 7</b><span>Bedikot a la mañana y a la tarde</span></div></div>`;
   if (x.mikve) rows += `<div class="row">${dot('mikve','wave')}<div class="t"><b>Noche de mikve</b><span>Después de tzet hakojavim</span></div></div>`;
-  x.onot.forEach(o => rows += `<div class="row">${dot('ona',o.onah==='night'?'moon':'sun')}<div class="t"><b>${esc(o.label)}</b><span>${onahText(o)}</span></div></div>`);
+  x.onot.forEach(o => rows += onaBlock(o, false));
   if (x.onot.length && T.diff(s, T.today()) >= 0) rows += `<button class="btn glass small" data-act="onaRem" data-d="${s}" style="width:100%;margin:6px 0 10px">${ICON.bell} Recordatorio para este día</button>`;
   return `<div class="glass card fade" style="padding:16px 16px 6px">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:0 2px 6px">
@@ -910,6 +964,10 @@ function sheetSettings(){
 
 // ---------------- Eventos ----------------
 document.getElementById('tabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; tab = b.dataset.tab; render(); window.scrollTo({top:0, behavior:'smooth'}); };
+app.addEventListener('click', e => {
+  const b = e.target.closest('[data-seg="calmode"] button'); if (!b) return;
+  S.settings.calMode = b.dataset.v; calAnchor = selDay; save(); render();
+});
 app.onclick = e => {
   const el = e.target.closest('[data-act]'); if (!el) return;
   const act = el.dataset.act, cy = sorted(), last = cy[cy.length-1];
@@ -926,9 +984,9 @@ app.onclick = e => {
     case 'alarms': sheetAlarms(last); break;
     case 'pushOn': doActivate(el); break;
     case 'onaRem': sheetOna(el.dataset.d); break;
-    case 'sel': selDay = el.dataset.d; if (selDay.slice(0,7) !== calMonth) calMonth = selDay.slice(0,7); render(); break;
-    case 'mprev': case 'mnext': { const [y,m] = calMonth.split('-').map(Number); const d = new Date(y, m-1 + (act==='mnext'?1:-1), 1, 12); calMonth = T.iso(d).slice(0,7); render(); break; }
-    case 'mtoday': calMonth = T.today().slice(0,7); selDay = T.today(); render(); break;
+    case 'sel': selDay = el.dataset.d; if (!inRange(selDay, monthRange(calAnchor))) calAnchor = selDay; render(); break;
+    case 'mprev': case 'mnext': shiftMonth(act === 'mnext' ? 1 : -1); render(); break;
+    case 'mtoday': calAnchor = T.today(); selDay = T.today(); render(); break;
   }
 };
 
@@ -936,7 +994,7 @@ app.onclick = e => {
 let tx = null;
 app.addEventListener('touchstart', e => { if (tab==='cal' && e.target.closest('.grid')) tx = e.touches[0].clientX; }, {passive:true});
 app.addEventListener('touchend', e => { if (tx===null) return; const dx = e.changedTouches[0].clientX - tx; tx = null;
-  if (Math.abs(dx) > 50){ const [y,m] = calMonth.split('-').map(Number); calMonth = T.iso(new Date(y, m-1 + (dx<0?1:-1), 1, 12)).slice(0,7); render(); } });
+  if (Math.abs(dx) > 50){ shiftMonth(dx < 0 ? 1 : -1); render(); } });
 
 // Refrescar al volver a la app (cambia el día)
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(); checkPush(); } });
