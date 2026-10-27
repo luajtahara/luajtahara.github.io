@@ -367,13 +367,28 @@ function bedikotCard(c, ci, t){
     <p class="hint" style="margin:12px 0 0">Si alguna bedika salió con duda, guardá el paño y consultá con el rav.</p></div>`;
 }
 
+function onaWhenText(){
+  const st = S.settings, w = [];
+  if (st.onaPrev) w.push('el día anterior a las ' + st.onaPrevTime);
+  if (st.onaSame) w.push('el mismo día a las ' + st.onaSameTime);
+  return w.length ? w.join(' y ') : 'sin horario elegido';
+}
+function onaRemHtml(){
+  if (pushOn() && S.settings.pushOna) return `<div class="row" style="border-top:1px solid var(--stroke-soft)">${dot('clean','bell')}
+    <div class="t"><b>Aviso automático en todas las onot</b><span>Te avisa ${onaWhenText()}.</span></div>
+    <button class="btn glass small" data-act="onaRem" style="width:auto;margin:0">Cambiar</button></div>`;
+  if (pushOn()) return `<div class="row" style="border-top:1px solid var(--stroke-soft)">${dot('ona','bell')}
+    <div class="t"><b>Avisos de onot apagados</b><span>Prendelos para que te avise en cada oná.</span></div>
+    <button class="btn glass small" data-act="onaPushOn" style="width:auto;margin:0">Prender</button></div>`;
+  if (pushSupported() || pushNeedsInstall()) return `<button class="btn primary small" data-act="${pushNeedsInstall() ? 'settings' : 'pushOn'}" style="width:100%;margin:6px 0 12px">${ICON.bell} Activar avisos automáticos</button>`;
+  return `<button class="btn glass small" data-act="onaRem" style="width:100%;margin:6px 0 12px">${ICON.bell} Agregar las onot al calendario</button>`;
+}
 function onotCard(cy, t){
   const list = T.onot(cy, S.settings);
   if (!list.length) return '';
   let h = `<div class="sec-title">Onot perishá</div><div class="glass card" style="padding:4px 16px">`;
   list.forEach(o => { h += onaBlock(o, o.gDate && T.diff(o.gDate, t) < 0); });
-  if (list.some(o => o.gDate && T.diff(o.gDate, t) >= 0))
-    h += `<button class="btn glass small" data-act="onaRem" style="width:100%;margin:6px 0 12px">${ICON.bell} Agregar recordatorios de onot</button>`;
+  if (list.some(o => o.gDate && T.diff(o.gDate, t) >= 0)) h += onaRemHtml();
   return h + `</div>`;
 }
 
@@ -448,7 +463,8 @@ function dayDetail(s, x){
   if (x.clean) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Shivá nekiím · día ${x.clean} de 7</b><span>Bedikot a la mañana y a la tarde</span></div></div>`;
   if (x.mikve) rows += `<div class="row">${dot('mikve','wave')}<div class="t"><b>Noche de mikve</b><span>Después de tzet hakojavim</span></div></div>`;
   x.onot.forEach(o => rows += onaBlock(o, false));
-  if (x.onot.length && T.diff(s, T.today()) >= 0) rows += `<button class="btn glass small" data-act="onaRem" data-d="${s}" style="width:100%;margin:6px 0 10px">${ICON.bell} Recordatorio para este día</button>`;
+  if (x.onot.length && T.diff(s, T.today()) >= 0 && pushOn() && S.settings.pushOna)
+    rows += `<p class="hint" style="margin:0 2px 12px">🔔 Te avisa automáticamente ${onaWhenText()}.</p>`;
   return `<div class="glass card fade" style="padding:16px 16px 6px">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:0 2px 6px">
       <b style="font-size:18px">${fLong(s)}</b><span class="he" style="color:var(--sub);font-size:15px">${hebHe(s)}</span></div>
@@ -824,14 +840,11 @@ function onaItems(list){
 }
 function sheetOna(day){
   const st = S.settings, t = T.today();
-  const all = T.onot(sorted(), st).filter(o => o.gDate && T.diff(o.gDate, t) >= 0 && (!day || o.gDate === day));
-  if (!all.length) return toast('No hay onot próximas');
+  const all = T.onot(sorted(), st).filter(o => o.gDate && T.diff(o.gDate, t) >= 0);
   const pick = new Set(all.map((o, i) => i));
   const hm = d => d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
-  openSheet(`<h3>Recordatorio de oná</h3>
-    <p class="lead">${day ? 'Se agrega un recordatorio al Calendario del iPhone para la oná de este día.' : 'Elegí para qué onot querés recordatorio. Se agregan al Calendario del iPhone y suenan aunque la app esté cerrada.'}</p>
-    <div class="glass card" style="padding:2px 16px;margin:0">${all.map((o, i) => `
-      <div class="sw"><div><b>${esc(o.label)}</b><span>${onahText(o)}</span></div>${all.length > 1 ? `<button class="toggle on" data-o="${i}"></button>` : ''}</div>`).join('')}</div>
+  openSheet(`<h3>Recordatorios de onot</h3>
+    <p class="lead">${pushOn() ? 'Se aplica a todas las onot, también a las de los próximos ciclos: la app las programa sola cada vez que registrás un período.' : 'Se aplica a todas las onot. Para que se programen solas, activá las notificaciones en Ajustes.'}</p>
     <label class="f">Cuándo avisar</label>
     <div class="glass card" style="padding:2px 16px;margin:0">
       <div class="sw"><div><b>El mismo día</b></div><div style="display:flex;gap:10px;align-items:center">
@@ -858,7 +871,9 @@ function sheetOna(day){
       st.onaSameTime = root.querySelector('#oSameT').value || '08:00'; st.onaPrevTime = root.querySelector('#oPrevT').value || '21:00'; save();
       root.querySelector('#oPv').textContent = String(st.msgOna || '').trim() || 'Recordatorio';
       const its = onaItems(chosen());
-      sum.innerHTML = its.length ? 'Se van a agregar: ' + its.map(it => `<b>${fShort(T.iso(it.at))} ${hm(it.at)}</b>`).join(' · ') : 'No hay recordatorios para agregar (elegí al menos una opción con hora futura).';
+      const lst = its.map(it => `<b>${fShort(T.iso(it.at))} ${hm(it.at)}</b>`).join(' · ');
+      sum.innerHTML = pushOn() ? (its.length ? 'Próximos avisos: ' + lst : 'Por ahora no hay onot próximas: cuando registres el próximo período, se programan solas.')
+                               : (its.length ? 'Se van a agregar al Calendario: ' + lst : 'No hay onot próximas para agregar.');
       add.disabled = !its.length; add.style.opacity = its.length ? '' : '.5';
     };
     root.querySelectorAll('[data-o]').forEach(b => b.onclick = () => { b.classList.toggle('on'); const i = +b.dataset.o; b.classList.contains('on') ? pick.add(i) : pick.delete(i); upd(); });
@@ -876,7 +891,7 @@ function pushSettingsHtml(st){
   if (!pushOn()) return pushCardHtml(false);
   return pushCardHtml(false) + `<div class="glass card" style="padding:2px 16px;margin:10px 0 0">
     <div class="sw"><div><b>Bedikot</b><span>Mañana y antes de la shkiá</span></div><button class="toggle ${st.pushBedika?'on':''}" data-ptg="pushBedika"></button></div>
-    <div class="sw"><div><b>Onot</b><span>Con los horarios de “Recordatorio de oná”</span></div><button class="toggle ${st.pushOna?'on':''}" data-ptg="pushOna"></button></div></div>
+    <div class="sw"><div><b>Onot</b><span>Automático en todas · ${onaWhenText()} · <a href="#" data-act-ona style="color:var(--accent)">cambiar</a></span></div><button class="toggle ${st.pushOna?'on':''}" data-ptg="pushOna"></button></div></div>
     <div class="btns" style="margin-top:10px"><button class="btn glass small" style="flex:1" id="pTest">Probar ahora</button><button class="btn glass small danger" style="flex:1" id="pOff">Desactivar</button></div>`;
 }
 function wirePushSettings(root, st){
@@ -885,6 +900,7 @@ function wirePushSettings(root, st){
   const wire = () => {
     const on = box.querySelector('[data-act="pushOn"]'); if (on) on.onclick = async () => { await doActivate(on); refresh(); };
     box.querySelectorAll('[data-ptg]').forEach(b => b.onclick = () => { b.classList.toggle('on'); st[b.dataset.ptg] = b.classList.contains('on'); save(); });
+    const oa = box.querySelector('[data-act-ona]'); if (oa) oa.onclick = e => { e.preventDefault(); sheetOna(); };
     const tb = box.querySelector('#pTest'); if (tb) tb.onclick = async () => {
       try { const r = await api('POST', '/test', { id: S.push.id, token: S.push.token, text: alarmText('m', 1) }); toast(r.ok ? 'Enviado: te llega en unos segundos' : 'No se pudo enviar la prueba'); }
       catch (e) { toast('No se pudo enviar. Revisá tu conexión.'); } };
@@ -983,7 +999,8 @@ app.onclick = e => {
     case 'settings': sheetSettings(); break;
     case 'alarms': sheetAlarms(last); break;
     case 'pushOn': doActivate(el); break;
-    case 'onaRem': sheetOna(el.dataset.d); break;
+    case 'onaRem': sheetOna(); break;
+    case 'onaPushOn': S.settings.pushOna = true; save(); render(); toast('Avisos de onot prendidos'); break;
     case 'sel': selDay = el.dataset.d; if (!inRange(selDay, monthRange(calAnchor))) calAnchor = selDay; render(); break;
     case 'mprev': case 'mnext': shiftMonth(act === 'mnext' ? 1 : -1); render(); break;
     case 'mtoday': calAnchor = T.today(); selDay = T.today(); render(); break;
