@@ -319,7 +319,7 @@ function viewHoy(){
     const days = S.settings.minDays;
     h += `<div class="glass card hero fade">${ring(Math.min(st.day,days)/days,'var(--nida)',st.day,'día')}
       <div><span class="pill p-nida">Nidá</span><h2>Día ${st.day}</h2>
-      <p>Empezó ${c.onah==='night'?'de noche':'de día'} el ${fShort(c.onset)}.</p></div></div>`;
+      <p>Empezó el ${onsetWhen(c)}, ${c.onah==='night'?'de noche':'de día'}.</p></div></div>`;
     h += `<div class="sec-title">Próximo paso</div><div class="glass card" style="padding:4px 16px">
       <div class="row">${dot('clean','check')}<div class="t"><b>Hefsek tahará</b>
       <span>${st.canHefsek ? 'Ya se puede hacer' : 'A partir del ' + fLong(ci.earliestHefsek)}, antes de la shkiá (${shkia(st.canHefsek ? t : ci.earliestHefsek)})</span></div></div></div>`;
@@ -486,7 +486,7 @@ function viewCal(){
 
 function dayDetail(s, x){
   let rows = '';
-  if (x.start) rows += `<div class="row">${dot('nida','drop')}<div class="t"><b>Inicio del período</b><span>${x.startNight?'De noche (después de la shkiá)':'De día'}</span></div></div>`;
+  if (x.start) rows += `<div class="row">${dot('nida','drop')}<div class="t"><b>Inicio del período</b><span>${x.startCycle && x.startCycle.time ? 'A las ' + x.startCycle.time + ' · ' : ''}${x.startNight ? (x.startCycle && x.startCycle.preDawn ? 'De noche (madrugada)' : 'De noche (después de la shkiá)') : 'De día'}</span></div></div>`;
   else if (x.nida) rows += `<div class="row">${dot('nida','drop')}<div class="t"><b>${x.projected?'Nidá (estimado)':'Nidá'}</b><span>${x.projected?'Hasta que se haga el hefsek':'Separados'}</span></div></div>`;
   if (x.hefsekFrom) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Primer día posible para el hefsek</b><span>Antes de la shkiá (${shkia(s)})</span></div></div>`;
   if (x.hefsek) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Hefsek tahará</b><span>Antes de la shkiá (${shkia(s)})</span></div></div>`;
@@ -511,7 +511,7 @@ function viewHist(){
     const c = cy[i], ci = T.cycleInfo(c, S.settings);
     const gap = i>0 ? T.diff(ci.hd, T.startHd(cy[i-1])) + 1 : null;
     h += `<div class="glass card fade"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <span class="pill p-nida" style="margin:0">${fShort(c.onset)} · ${c.onah==='night'?'noche':'día'}</span>
+      <span class="pill p-nida" style="margin:0">${onsetWhen(c)} · ${c.onah==='night'?'noche':'día'}</span>
       ${gap ? `<span style="font-size:13px;color:var(--sub)">Intervalo: <b style="color:var(--text)">${gap} días</b></span>` : ''}</div>
       <div class="row">${dot('nida','drop')}<div class="t"><b>Inicio</b><span>${fLong(c.onset)} · ${hebShort(ci.hd)}</span></div></div>
       <div class="row">${dot('clean','check')}<div class="t"><b>Hefsek tahará</b><span>${c.hefsek ? fLong(c.hefsek) : 'Pendiente'}</span></div></div>
@@ -571,29 +571,52 @@ function wireSeg(root, name, cb){
     b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); cb(b.dataset.v);
   });
 }
-function onsetHint(date, onah){
-  if (!date) return '';
-  const hd = onah === 'night' ? T.add(date,1) : date;
-  return `Fecha hebrea: <b>${T.hebLabel(hd)}</b> · <span class="he">${hebHe(hd)}</span><br>` +
-    (onah==='night' ? `Como fue después de la shkiá (${shkia(date)}), ya cuenta como el día hebreo siguiente.` : `Shkiá de ese día: ${shkia(date)}. Si fue después, elegí “De noche”.`);
+// Con la hora en que vino, la app decide sola si fue de día o de noche
+function classifyOnset(date, time){
+  if (!date || !time) return null;
+  const [h, m] = time.split(':').map(Number), at = T.parse(date); at.setHours(h, m || 0, 0, 0);
+  const rise = T.sunrise(date, S.settings.lat, S.settings.lng), set = T.sunset(date, S.settings.lat, S.settings.lng);
+  if (!rise || !set) return null;
+  const near = Math.min(Math.abs(at - set), Math.abs(at - rise)) <= 20 * 60000;
+  if (at < rise) return { onah: 'night', preDawn: true, near, why: `${time} es antes del amanecer (${amanecer(date)}): es la noche que empezó el día anterior a la tarde` };
+  if (at >= set) return { onah: 'night', preDawn: false, near, why: `${time} es después de la shkiá (${shkia(date)}): cuenta como de noche` };
+  return { onah: 'day', preDawn: false, near, why: `${time} es entre el amanecer (${amanecer(date)}) y la shkiá (${shkia(date)}): cuenta como de día` };
 }
+const onsetHd = (date, onah, preDawn) => onah === 'night' ? (preDawn ? date : T.add(date, 1)) : date;
+function onsetHint(date, onah, preDawn, cls){
+  if (!date) return '';
+  const hd = onsetHd(date, onah, preDawn);
+  let h = cls ? `<b>${cls.why}.</b><br>` : (onah === 'night' ? `Después de la shkiá (${shkia(date)}) ya cuenta como el día hebreo siguiente.<br>` : `Shkiá de ese día: ${shkia(date)}.<br>`);
+  h += `Fecha hebrea: <b>${T.hebLabel(hd)}</b> · <span class="he">${hebHe(hd)}</span>`;
+  if (cls && cls.near) h += `<br><b style="color:var(--nida)">Está muy cerca de la shkiá o del amanecer.</b> Si hay duda, consultá con el rav y, si hace falta, cambiá “De día / De noche” a mano.`;
+  return h;
+}
+const onsetWhen = c => `${fShort(c.onset)}${c.time ? ' a las ' + c.time : ''}`;
 
 function sheetCycle(c){
   const isNew = !c;
-  c = c || { onset: T.today(), onah: 'day' };
-  let onah = c.onah;
+  const nowHm = (() => { const d = new Date(); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); })();
+  c = c || { onset: T.today(), onah: 'day', time: nowHm };
+  let onah = c.onah, preDawn = !!c.preDawn, manual = false;
   openSheet(`<h3>${isNew ? 'Inicio del período' : 'Editar período'}</h3>
-    <p class="lead">${isNew ? 'Cargá cuándo empezó. La app calcula todo lo demás.' : 'Corregí lo que haga falta.'}</p>
-    <label class="f">Fecha</label><input type="date" id="fOnset" value="${c.onset}" max="${T.today()}">
-    <label class="f">¿Antes o después de la shkiá?</label>${onahSeg(onah)}
+    <p class="lead">${isNew ? 'Cargá el día y la hora en que vino. La app calcula todo lo demás.' : 'Corregí lo que haga falta.'}</p>
+    <div style="display:flex;gap:10px"><div style="flex:1.4"><label class="f">Fecha</label><input type="date" id="fOnset" value="${c.onset}" max="${T.today()}"></div>
+      <div style="flex:1"><label class="f">Hora</label><input type="time" id="fTime" value="${c.time || ''}"></div></div>
+    <label class="f">De día o de noche</label>${onahSeg(onah)}
     <p class="hint" id="fHint"></p>
     ${isNew ? '' : `<label class="f">Hefsek tahará</label><input type="date" id="fHef" value="${c.hefsek||''}">
       <div class="sw" style="margin-top:10px"><div><b>Ya fue a la mikve</b><span>Cierra el ciclo</span></div><button class="toggle ${c.mikveDone?'on':''}" id="fMik"></button></div>`}
     <div style="margin-top:22px"><button class="btn primary" id="fSave">Guardar</button><button class="btn glass" id="fCancel">Cancelar</button></div>`,
   root => {
-    const upd = () => root.querySelector('#fHint').innerHTML = onsetHint(root.querySelector('#fOnset').value, onah);
-    upd(); root.querySelector('#fOnset').oninput = upd;
-    wireSeg(root, 'onah', v => { onah = v; upd(); });
+    const dI = root.querySelector('#fOnset'), tI = root.querySelector('#fTime');
+    const setSeg = v => root.querySelectorAll('[data-seg="onah"] button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+    const upd = () => {
+      const cls = manual ? null : classifyOnset(dI.value, tI.value);
+      if (cls) { onah = cls.onah; preDawn = cls.preDawn; setSeg(onah); }
+      root.querySelector('#fHint').innerHTML = onsetHint(dI.value, onah, preDawn, cls);
+    };
+    upd(); dI.oninput = () => { manual = false; upd(); }; tI.oninput = () => { manual = false; upd(); };
+    wireSeg(root, 'onah', v => { manual = true; onah = v; preDawn = false; upd(); });
     const mik = root.querySelector('#fMik'); if (mik) mik.onclick = () => mik.classList.toggle('on');
     root.querySelector('#fCancel').onclick = () => closeSheet();
     root.querySelector('#fSave').onclick = () => {
@@ -602,12 +625,12 @@ function sheetCycle(c){
       if (isNew){
         const last = sorted().slice(-1)[0];
         if (last && !last.mikveDone && last.hefsek) last.mikveDone = true; // ciclo anterior cerrado
-        S.cycles.push({ id: Date.now(), onset, onah, hefsek: null, bedikot: {}, mikveDone: false });
+        S.cycles.push({ id: Date.now(), onset, time: tI.value || '', onah, preDawn: onah === 'night' && preDawn, hefsek: null, bedikot: {}, mikveDone: false });
         toast('Período registrado');
       } else {
         const hef = root.querySelector('#fHef').value || null;
         if (hef && T.diff(hef, onset) < 0) return toast('El hefsek no puede ser antes del inicio');
-        Object.assign(c, { onset, onah, hefsek: hef, mikveDone: hef ? root.querySelector('#fMik').classList.contains('on') : false });
+        Object.assign(c, { onset, time: tI.value || '', onah, preDawn: onah === 'night' && preDawn, hefsek: hef, mikveDone: hef ? root.querySelector('#fMik').classList.contains('on') : false });
         toast('Cambios guardados');
       }
       save(); closeSheet(); render();

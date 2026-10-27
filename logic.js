@@ -87,7 +87,8 @@
   };
 
   // Día hebreo del inicio: si empezó de noche (después de la shkiá) ya es el día hebreo siguiente.
-  const startHd = c => c.onah === 'night' ? add(c.onset, 1) : c.onset;
+  // Si fue antes del amanecer (madrugada), la noche ya es de ese mismo día hebreo.
+  const startHd = c => c.onah === 'night' ? (c.preDawn ? c.onset : add(c.onset, 1)) : c.onset;
 
   // ---------- Onot perishá ----------
   function sameHebDayNextMonth(hd) {
@@ -172,6 +173,7 @@
         if (!c.hefsek && diff(s, t) > 0) at(s).projected = true;
       }
       if (c.onah === 'night') at(c.onset).startNight = true;
+      at(c.onset).startCycle = c;
       at(c.onset).start = true;
       if (c.hefsek) {
         at(c.hefsek).hefsek = true;
