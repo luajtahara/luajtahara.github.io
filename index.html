@@ -25,6 +25,7 @@
   --mikve:#2f86ff; --mikve-bg:rgba(47,134,255,.18);
   --ona:#f0a020; --ona-bg:rgba(240,160,32,.2);
   --night:rgba(43,42,92,.07); --night-line:rgba(43,42,92,.16);
+  --nida-bg2:rgba(214,60,105,.28); --clean-bg2:rgba(16,150,118,.28); --row-line:rgba(60,40,120,.06); --ink:#2e3566; --bar:rgba(255,255,255,.97);
   --bg1:#f6f1ff; --bg2:#ffe7f0; --bg3:#e3f4ff;
   --blob1:#c7b4ff; --blob2:#ffb8cf; --blob3:#9fe0ff;
 }
@@ -37,6 +38,7 @@
   --bg1:#100c20; --bg2:#1b1030; --bg3:#0b1a2a;
   --blob1:#4b2fa8; --blob2:#7a2452; --blob3:#145a7a;
   --night:rgba(0,0,20,.28); --night-line:rgba(255,255,255,.12);
+  --nida-bg2:rgba(242,85,127,.32); --clean-bg2:rgba(24,184,146,.32); --row-line:rgba(255,255,255,.06); --ink:#d9d4ff; --bar:rgba(22,18,42,.97);
 }}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%}
@@ -170,10 +172,35 @@ header.top{display:flex;align-items:flex-start;justify-content:space-between;mar
 .lg-split .mini i{flex:1;display:grid;place-items:center;font-style:normal;background:var(--night);border-top:1px dashed var(--night-line);color:var(--sub)}
 
 /* tab bar */
-nav.tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 14px);display:flex;gap:4px;padding:6px;border-radius:99px;z-index:20}
+.calcard{margin:0 -8px;padding:0 4px 14px}
+.cwd{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:12px;font-weight:600;color:var(--faint);padding:2px 0 6px}
+.cwd .sh{color:var(--accent)}
+.cr{position:relative;height:84px;display:grid;grid-template-columns:repeat(7,1fr)}
+.cr + .cr{border-top:1px solid var(--row-line)}
+.cr .bs{position:absolute;z-index:0}
+.cc{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cc .gn{font-size:20px;font-weight:600;margin-top:9px;width:33px;height:33px;display:grid;place-items:center;border-radius:50%;font-variant-numeric:tabular-nums}
+.cc .hd{font-size:12px;color:var(--sub);margin-top:-1px;display:flex;align-items:center;gap:2px}
+.cc .hn{position:absolute;bottom:7px;font-size:11px;color:var(--faint);display:flex;align-items:center;gap:2px}
+.cc .mi{width:10px;height:10px;color:var(--ona)}
+.cc.out{opacity:.25}
+.cc.today .gn{background:var(--accent);color:#fff}
+.cc.sel:not(.today) .gn{box-shadow:inset 0 0 0 2px var(--accent)}
+.cc .hf{position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:var(--clean)}
+/* Barra de abajo fija */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-around;align-items:center;padding:8px 8px calc(env(safe-area-inset-bottom) + 8px);z-index:20;border-radius:0!important;border-width:1px 0 0!important}
+nav.tabs::before{display:none}
+nav.tabs{background:var(--bar)!important;-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);box-shadow:0 -6px 24px rgba(60,30,120,.08)!important}
 nav.tabs button{border:0;background:none;font:inherit;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;padding:8px 18px;border-radius:99px;cursor:pointer;min-width:84px;transition:all .25s}
-nav.tabs button svg{width:24px;height:24px}
-nav.tabs button.on{color:var(--accent);background:var(--glass-strong);box-shadow:inset 0 1px 0 var(--stroke),0 2px 8px rgba(0,0,0,.06)}
+nav.tabs button svg{width:28px;height:28px}
+nav.tabs button{min-width:0!important;padding:6px 10px!important;flex:1;position:relative;color:var(--ink)!important}
+nav.tabs button span{font-size:10px;font-weight:600;color:var(--faint)}
+nav.tabs button.on span{color:var(--accent)}
+nav.tabs button .ac{fill:var(--accent);stroke:none}
+nav.tabs button .acs{stroke:var(--accent)}
+nav.tabs button.on svg{filter:drop-shadow(0 2px 6px rgba(109,76,255,.35))}
+nav.tabs button.on::after{content:"";position:absolute;top:-8px;left:30%;right:30%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+nav.tabs .badge{position:absolute;top:4px;right:calc(50% - 18px);width:9px;height:9px;border-radius:50%;background:var(--nida);border:2px solid var(--bg1)}
 
 /* sheet */
 .scrim{position:fixed;inset:0;background:rgba(20,10,40,.28);z-index:40;opacity:0;transition:opacity .3s}
@@ -219,9 +246,11 @@ input[type=date],input[type=time],input[type=text],input[type=number]{width:100%
 <div class="bg"><i></i><i></i><i></i></div>
 <div class="app" id="app"></div>
 <nav class="tabs glass" id="tabs">
-  <button data-tab="hoy" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/></svg>Hoy</button>
-  <button data-tab="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Calendario</button>
-  <button data-tab="hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/><path d="M12 8v4l3 2"/></svg>Historial</button>
+  <button data-tab="hoy" class="on" aria-label="Hoy"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5.5 14.2 16 5.5l10.5 8.7V25a2 2 0 0 1-2 2h-17a2 2 0 0 1-2-2z"/><rect class="ac" x="11.5" y="20.5" width="9" height="2.4" rx="1.2"/></svg><span>Hoy</span></button>
+  <button data-tab="cal" aria-label="Calendario"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path class="ac" d="M5.5 11V9a2.5 2.5 0 0 1 2.5-2.5h16A2.5 2.5 0 0 1 26.5 9v2z"/><rect x="5.5" y="6.5" width="21" height="20" rx="2.5"/><path d="M5.5 11.5h21M11 3.5v5M21 3.5v5" stroke-linecap="round"/></svg><span>Calendario</span></button>
+  <button data-tab="hist" aria-label="Historial"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="16" r="10.5"/><path class="acs" d="M16 10v6.5l4 2.5" stroke-width="2.4"/></svg><span>Historial</span></button>
+  <button data-tab="notif" aria-label="Notificaciones"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M9 21v-6.5a7 7 0 0 1 14 0V21l2 2.5H7z"/><path d="M13.5 26.5a2.6 2.6 0 0 0 5 0" stroke-linecap="round"/><circle class="ac" cx="23" cy="8" r="3.2"/></svg><span>Avisos</span></button>
+  <button data-tab="ajustes" aria-label="Ajustes"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M16 4.5l2.4 2.6 3.5-.6 1 3.4 3.3 1.4-1 3.4 2 2.9-2.6 2.4.6 3.5-3.4 1-1.4 3.3-3.4-1-2.9 2-2.4-2.6-3.5.6-1-3.4-3.3-1.4 1-3.4-2-2.9 2.6-2.4-.6-3.5 3.4-1 1.4-3.3 3.4 1z"/><circle class="ac" cx="16" cy="16" r="3.6"/></svg><span>Ajustes</span></button>
 </nav>
 <div class="toast glass" id="toast"></div>
 
@@ -392,7 +421,7 @@ function onaRemHtml(){
   if (pushOn()) return `<div class="row" style="border-top:1px solid var(--stroke-soft)">${dot('ona','bell')}
     <div class="t"><b>Avisos de onot apagados</b><span>Prendelos para que te avise en cada oná.</span></div>
     <button class="btn glass small" data-act="onaPushOn" style="width:auto;margin:0">Prender</button></div>`;
-  if (pushSupported() || pushNeedsInstall()) return `<button class="btn primary small" data-act="${pushNeedsInstall() ? 'settings' : 'pushOn'}" style="width:100%;margin:6px 0 12px">${ICON.bell} Activar avisos automáticos</button>`;
+  if (pushSupported() || pushNeedsInstall()) return `<button class="btn primary small" data-act="${pushNeedsInstall() ? 'gonotif' : 'pushOn'}" style="width:100%;margin:6px 0 12px">${ICON.bell} Activar avisos automáticos</button>`;
   return `<button class="btn glass small" data-act="onaRem" style="width:100%;margin:6px 0 12px">${ICON.bell} Agregar las onot al calendario</button>`;
 }
 function onotCard(cy, t){
@@ -451,34 +480,52 @@ function viewCal(){
     const h1 = T.heb(r.first), h2 = T.heb(r.last);
     sub = h1.key===h2.key ? `${h1.month} ${h1.year}` : `${h1.month} – ${h2.month} ${h2.year}`;
   }
-  let g = ['D','L','M','M','J','V','S'].map((d,i)=>`<div class="wd ${i===6?'sh':''}">${i===6?'Sh':d}</div>`).join('');
-  for (let i=0;i<weeks*7;i++){
-    const s = T.add(start,i), x = mk[s] || {onot:[]}, inM = inRange(s, r);
-    let cls = 'day';
-    if (!inM) cls += ' out';
-    if (s===t) cls += ' today';
-    if (s===selDay) cls += ' sel';
-    const hv = half(s);
-    const tc = (hv.top ? 'st-' + hv.top : (hv.onaTop ? 'st-ona' : '')) + (hv.top && hv.onaTop ? ' ring' : '');
-    const bc = (hv.bot ? 'st-' + hv.bot : (hv.onaBot ? 'st-ona' : '')) + (hv.bot && hv.onaBot ? ' ring' : '');
-    const gd = +s.slice(8), hd = T.heb(s).day, hn = T.heb(T.add(s, 1)).day;
-    const big = heb ? hd : gd;
-    const small = heb ? (gd === 1 ? '1 ' + gMonthShort(s) : gd) : (hd === 1 ? '1 ' + T.heb(s).month.slice(0,3) : hd);
-    const sunIc = hv.onaTop ? ICON.sun.replace('<svg','<svg width="10" height="10" style="vertical-align:-1px;margin-right:1px;color:var(--ona)"') : '';
-    g += `<div class="${cls}" data-act="sel" data-d="${s}">
-      <div class="top ${tc}">${x.hefsekFrom ? '<i class="hf"></i>' : ''}<span class="g">${big}</span><span class="h">${sunIc}${small}</span></div>
-      <div class="bot ${bc}">${hv.onaBot ? ICON.moon : ''}<span class="n">${hn}</span></div></div>`;
+  const pct = i => (i / 7 * 100).toFixed(4) + '%';
+  const BG = { nida:'var(--nida-bg)', proj:'repeating-linear-gradient(135deg,var(--nida-bg) 0 6px,transparent 6px 11px)', clean:'var(--clean-bg)' };
+  const BG2 = { nida:'var(--nida-bg2)', proj:'repeating-linear-gradient(135deg,var(--nida-bg2) 0 6px,transparent 6px 11px)', clean:'var(--clean-bg2)' };
+  const FG = { nida:'var(--nida)', proj:'var(--nida)', clean:'var(--clean)' };
+  let rows = '';
+  for (let w = 0; w < weeks; w++){
+    const wk = Array.from({length:7}, (_, i) => T.add(start, w*7 + i));
+    const hv = wk.map(d => inRange(d, r) ? half(d) : { top:'', bot:'', onaTop:false, onaBot:false });
+    const top = hv.map(x => x.top === 'mikve' ? '' : x.top), bot = hv.map(x => x.bot === 'mikve' ? '' : x.bot);
+    let segs = '';
+    // Franjas continuas de nidá / shivá nekiím: día arriba, noche (un tono más fuerte) abajo
+    for (let i = 0; i < 7; i++){
+      if (top[i]) { const L = top[i-1] !== top[i], R = top[i+1] !== top[i];
+        segs += `<div class="bs" style="left:${pct(i)};width:${pct(1)};top:6px;height:49px;background:${BG[top[i]]};border-radius:${L?14:0}px ${R?14:0}px ${R && bot[i]!==top[i]?14:0}px ${L && bot[i-1]!==top[i]?14:0}px"></div>`; }
+      if (bot[i]) { const L = bot[i-1] !== bot[i], R = bot[i+1] !== bot[i];
+        segs += `<div class="bs" style="left:${pct(i)};width:${pct(1)};top:55px;height:23px;background:${BG2[bot[i]]};border-radius:${L && top[i]!==bot[i]?14:0}px ${R && top[i+1]!==bot[i]?14:0}px ${R?14:0}px ${L?14:0}px"></div>`; }
+      // Oná y mikve: sólo su día
+      if (hv[i].onaTop) segs += `<div class="bs" style="left:calc(${pct(i)} + 4px);width:calc(${pct(1)} - 8px);top:6px;height:49px;background:var(--ona-bg);border-radius:14px 14px 4px 4px"></div>`;
+      if (hv[i].onaBot) segs += `<div class="bs" style="left:calc(${pct(i)} + 4px);width:calc(${pct(1)} - 8px);top:55px;height:23px;background:var(--ona-bg);border-radius:4px 4px 14px 14px"></div>`;
+      if (hv[i].bot === 'mikve') segs += `<div class="bs" style="left:${pct(i)};width:${pct(1)};top:55px;height:23px;background:var(--mikve-bg);border-radius:${top[i]?0:14}px 14px 14px ${bot[i-1]?0:14}px"></div>`;
+    }
+    const cells = wk.map((d, i) => {
+      const inM = inRange(d, r), x = mk[d] || { onot: [] }, h = hv[i];
+      const gd = +d.slice(8), hd = T.heb(d).day, hn = T.heb(T.add(d, 1)).day;
+      const big = heb ? hd : gd;
+      const small = heb ? (gd === 1 ? '1 ' + gMonthShort(d) : gd) : (hd === 1 ? '1 ' + T.heb(d).month.slice(0,3) : hd);
+      const fg = h.onaTop ? 'var(--ona)' : (top[i] ? FG[top[i]] : '');
+      const nfg = h.onaBot ? 'var(--ona)' : (h.bot === 'mikve' ? 'var(--mikve)' : (bot[i] ? FG[bot[i]] : ''));
+      const cls = 'cc' + (inM ? '' : ' out') + (d === t ? ' today' : '') + (d === selDay ? ' sel' : '');
+      return `<div class="${cls}" data-act="sel" data-d="${d}">${x.hefsekFrom && inM ? '<i class="hf"></i>' : ''}
+        <span class="gn" style="${fg && d !== t ? 'color:' + fg : ''}">${big}</span>
+        <span class="hd">${h.onaTop ? ICON.sun.replace('<svg', '<svg class="mi"') : ''}${small}</span>
+        <span class="hn" style="${nfg ? 'color:' + nfg + ';font-weight:650' : ''}">${h.onaBot ? ICON.moon.replace('<svg', '<svg class="mi"') : ''}${hn}</span></div>`;
+    }).join('');
+    rows += `<div class="cr">${segs}${cells}</div>`;
   }
   let h = `<div class="seg" style="margin:0 0 12px" data-seg="calmode"><button data-v="greg" class="${heb?'':'on'}">Gregoriano</button><button data-v="heb" class="${heb?'on':''}">Hebreo</button></div>
-    <div class="glass card fade"><div class="cal-head">
+    <div class="glass calcard fade"><div class="cal-head">
     <button class="round glass" data-act="mprev">${ICON.left}</button>
     <div style="text-align:center"><h3>${title}</h3><small>${sub}</small></div>
     <button class="round glass" data-act="mnext">${ICON.right}</button></div>
-    <div class="grid">${g}</div>
+    <div class="cwd">${['Dom','Lun','Mar','Mié','Jue','Vie','Sháb'].map((d,i)=>`<span class="${i===6?'sh':''}">${d}</span>`).join('')}</div>
+    <div class="calrows">${rows}</div>
     <div class="legend"><span><i style="background:var(--nida)"></i>Nidá</span><span><i style="background:var(--clean)"></i>Shivá nekiím</span>
-    <span><i style="background:var(--mikve)"></i>Mikve</span><span><i style="background:var(--ona)"></i>Oná</span>
-    <span class="lg-ic">${ICON.moon} de noche</span><span class="lg-ic">${ICON.sun} de día</span></div>
-    <div class="lg-split"><div class="mini"><b>Día</b><i>Noche</i></div><span>Cada día está partido en dos: <b>arriba el día</b> hasta la shkiá, <b>abajo la noche</b>, que ya es el día hebreo siguiente (el número de abajo).</span></div></div>`;
+    <span><i style="background:var(--mikve)"></i>Mikve</span><span><i style="background:var(--ona)"></i>Oná</span></div>
+    <p class="hint" style="margin:8px 12px 0;font-size:12px">${heb ? 'Número grande: fecha hebrea' : 'Número grande: fecha gregoriana'} · debajo: ${heb ? 'fecha gregoriana' : 'fecha hebrea del día'} · abajo: fecha hebrea desde la shkiá (la noche).</p></div>`;
   h += dayDetail(selDay, mk[selDay] || {onot:[]});
   if (!inRange(t, r)) h += `<button class="btn glass" data-act="mtoday">Volver a hoy</button>`;
   return h;
@@ -526,18 +573,21 @@ function viewHist(){
 const app = document.getElementById('app');
 function render(){
   const t = T.today();
-  const titles = {hoy:'Tahará', cal:'Calendario', hist:'Historial'};
+  const titles = {hoy:'Tahará', cal:'Calendario', hist:'Historial', notif:'Notificaciones', ajustes:'Ajustes'};
   app.innerHTML = `<header class="top"><div><h1>${titles[tab]}</h1>
-    <div class="date"><b>${fLong(t)}</b><br>${T.hebLabel(t)} · <span class="he">${hebHe(t)}</span></div></div>
-    <button class="round glass" data-act="settings" aria-label="Ajustes">${ICON.gear}</button></header>` +
-    (tab==='hoy' ? viewHoy() : tab==='cal' ? viewCal() : viewHist()) +
+    <div class="date"><b>${fLong(t)}</b><br>${T.hebLabel(t)} · <span class="he">${hebHe(t)}</span></div></div></header>` +
+    (tab==='hoy' ? viewHoy() : tab==='cal' ? viewCal() : tab==='notif' ? viewNotif() : tab==='ajustes' ? viewAjustes() : viewHist()) +
     `<p class="hint" style="text-align:center;margin:24px 10px 0;font-size:12px;color:var(--faint)">Cálculos orientativos. Ante cualquier duda, consultá con tu rav.</p>` +
     `<p class="hint" style="text-align:center;margin:14px 10px 0;font-size:12px;color:var(--faint);line-height:1.6">Leiluy Nishmat:</p>` +
     `<div class="hint" style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;margin:2px 10px 0;font-size:12px;color:var(--faint);line-height:1.6;text-align:center">
       <div>Iosef Hacohen Ben Adela<br>Daniel Ben Jana<br>Farah Ben Bahie<br>Eliahu Ben Elisa</div>
       <div>Julia Iafa Bat Ester<br>Cecilia Bat Berta<br>Jana Bat Antonia</div></div>`;
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  const nb = document.getElementById('nbadge'); if (nb) nb.hidden = pushOn() || !(pushSupported() || pushNeedsInstall());
+  if (tab === 'notif') wireNotif(app);
+  if (tab === 'ajustes') wireAjustes(app);
 }
+function goTab(t, anchor){ tab = t; render(); if (anchor) { const el = document.getElementById(anchor); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } else window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
 // ---------------- Sheets ----------------
 let scrim, sheet;
@@ -891,87 +941,84 @@ function onaItems(list){
   const seen = new Set();
   return out.filter(it => it.at.getTime() > now && !seen.has(+it.at) && seen.add(+it.at));
 }
-function sheetOna(day){
-  const st = S.settings, t = T.today();
-  const all = T.onot(sorted(), st).filter(o => o.gDate && T.diff(o.gDate, t) >= 0);
-  const pick = new Set(all.map((o, i) => i));
+function sheetOna(){ goTab('notif', 'secOna'); }
+
+function viewNotif(){
+  const st = S.settings, cy = sorted(), c = cy[cy.length - 1], t = T.today();
+  const inShiva = c && c.hefsek && !c.mikveDone;
   const hm = d => d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
-  openSheet(`<h3>Recordatorios de onot</h3>
-    <p class="lead">${pushOn() ? 'Se aplica a todas las onot, también a las de los próximos ciclos: la app las programa sola cada vez que registrás un período.' : 'Se aplica a todas las onot. Para que se programen solas, activá las notificaciones en Ajustes.'}</p>
-    <label class="f">Cuándo avisar</label>
-    <div class="glass card" style="padding:2px 16px;margin:0">
+  return `<div class="fade">
+    <div class="sec-title" style="margin-top:4px">Estado</div>
+    ${pushCardHtml(false)}
+    ${pushOn() ? `<div class="btns" style="margin-top:10px"><button class="btn glass small" style="flex:1" id="pTest">Probar ahora</button><button class="btn glass small danger" style="flex:1" id="pOff">Desactivar</button></div>` : ''}
+
+    <div class="sec-title" id="secBed">Bedikot (shivá nekiím)</div>
+    <div class="glass card" style="padding:2px 16px">
+      ${pushOn() ? `<div class="sw"><div><b>Avisarme las bedikot</b><span>Se programan solas al registrar el hefsek</span></div><button class="toggle ${st.pushBedika?'on':''}" data-ptg="pushBedika"></button></div>` : ''}
+      <div class="sw"><div><b>Bedika de la mañana</b><span>Hora del aviso</span></div><input type="time" id="sMorning" value="${st.morning}" style="width:auto;min-height:40px;padding:8px 12px"></div>
+      <div class="sw" style="flex-direction:column;align-items:stretch"><div><b>Bedika de la tarde</b><span>Minutos antes de la shkiá</span></div>
+        <div class="seg" data-seg="before" style="margin-top:10px">${[10,15,20,30].map(n=>`<button data-v="${n}" class="${st.beforeShkia==n?'on':''}">${n} min</button>`).join('')}</div></div>
+    </div>
+    ${alarmTextFields(st)}
+    ${inShiva ? `<button class="btn glass small" id="bCal" style="width:100%;margin-top:12px">${ICON.bell} ${pushOn() && st.pushBedika ? 'Agregar también al Calendario' : 'Agregar las bedikot al Calendario'}</button>` : ''}
+
+    <div class="sec-title" id="secOna">Onot perishá</div>
+    <div class="glass card" style="padding:2px 16px">
+      ${pushOn() ? `<div class="sw"><div><b>Avisarme las onot</b><span>Automático en todas, también en los próximos ciclos</span></div><button class="toggle ${st.pushOna?'on':''}" data-ptg="pushOna"></button></div>` : ''}
       <div class="sw"><div><b>El mismo día</b></div><div style="display:flex;gap:10px;align-items:center">
         <input type="time" id="oSameT" value="${st.onaSameTime}" style="width:auto;min-height:40px;padding:8px 12px"><button class="toggle ${st.onaSame?'on':''}" id="oSame"></button></div></div>
       <div class="sw"><div><b>El día anterior</b></div><div style="display:flex;gap:10px;align-items:center">
         <input type="time" id="oPrevT" value="${st.onaPrevTime}" style="width:auto;min-height:40px;padding:8px 12px"><button class="toggle ${st.onaPrev?'on':''}" id="oPrev"></button></div></div>
     </div>
-    <label class="f">Texto del recordatorio</label>
+    <label class="f">Texto del aviso de oná</label>
     <input type="text" id="oMsg" maxlength="60" value="${esc(st.msgOna)}" placeholder="Escribí lo que quieras">
     <div class="chips">${['🌼', '⭐', 'Mañana temprano', 'Recordatorio'].map(x => `<button data-of="${esc(x)}">${esc(x)}</button>`).join('')}</div>
-    <label class="f">Así se va a ver la notificación</label>
     <div class="glass notif"><div class="ic"><small>${T.parse(t).toLocaleDateString('es-AR',{weekday:'short'}).replace('.','').toUpperCase()}</small><b>${T.parse(t).getDate()}</b></div>
       <div class="tx"><b id="oPv"></b><span>${pushOn() ? 'Tahará' : 'Calendario'}</span></div><div class="tm">ahora</div></div>
     <p class="hint" id="oSum"></p>
-    ${pushOn() && st.pushOna ? `<div class="glass card note" style="margin:12px 0 0">Las onot ya se avisan con notificaciones, con estos horarios y este texto. Los cambios se guardan solos.</div>
-      <button class="btn primary" id="oNo">Listo</button><button class="btn glass" id="oAdd">${ICON.bell} Agregar también al Calendario</button>`
-    : `<button class="btn primary" id="oAdd">${ICON.bell} Agregar al Calendario</button><button class="btn glass" id="oNo">Cancelar</button>`}
-    <p class="hint">En la pantalla que se abre, seguí los pasos (en iPhone: “Agregar todo”). No dice “oná” ni el nombre de la app: sólo el texto que elijas.</p>`,
-  root => {
-    const msg = root.querySelector('#oMsg'), sum = root.querySelector('#oSum'), add = root.querySelector('#oAdd');
-    const chosen = () => all.filter((o, i) => pick.has(i));
-    const upd = () => {
-      st.msgOna = msg.value; st.onaSame = root.querySelector('#oSame').classList.contains('on'); st.onaPrev = root.querySelector('#oPrev').classList.contains('on');
-      st.onaSameTime = root.querySelector('#oSameT').value || '08:00'; st.onaPrevTime = root.querySelector('#oPrevT').value || '21:00'; save();
-      root.querySelector('#oPv').textContent = String(st.msgOna || '').trim() || 'Recordatorio';
-      const its = onaItems(chosen());
-      const lst = its.map(it => `<b>${fShort(T.iso(it.at))} ${hm(it.at)}</b>`).join(' · ');
-      sum.innerHTML = pushOn() ? (its.length ? 'Próximos avisos: ' + lst : 'Por ahora no hay onot próximas: cuando registres el próximo período, se programan solas.')
-                               : (its.length ? 'Se van a agregar al Calendario: ' + lst : 'No hay onot próximas para agregar.');
-      add.disabled = !its.length; add.style.opacity = its.length ? '' : '.5';
-    };
-    root.querySelectorAll('[data-o]').forEach(b => b.onclick = () => { b.classList.toggle('on'); const i = +b.dataset.o; b.classList.contains('on') ? pick.add(i) : pick.delete(i); upd(); });
-    ['#oSame', '#oPrev'].forEach(id => root.querySelector(id).onclick = e => { e.currentTarget.classList.toggle('on'); upd(); });
-    ['#oSameT', '#oPrevT'].forEach(id => root.querySelector(id).onchange = upd);
-    msg.oninput = upd;
-    root.querySelectorAll('[data-of]').forEach(b => b.onclick = () => { msg.value = b.dataset.of; upd(); });
-    root.querySelector('#oNo').onclick = () => closeSheet();
-    add.onclick = () => { const its = onaItems(chosen()); if (!its.length) return; downloadIcs(its); closeSheet(); };
-    upd();
-  });
+    <button class="btn glass small" id="oAdd" style="width:100%;margin-top:4px">${ICON.bell} ${pushOn() && st.pushOna ? 'Agregar también al Calendario' : 'Agregar las onot al Calendario'}</button>
+    <p class="hint" style="margin-top:14px">El Calendario es un respaldo: si lo usás, en la pantalla que se abre seguí los pasos (en iPhone: “Agregar todo”).</p>
+  </div>`;
 }
-
-function pushSettingsHtml(st){
-  if (!pushOn()) return pushCardHtml(false);
-  return pushCardHtml(false) + `<div class="glass card" style="padding:2px 16px;margin:10px 0 0">
-    <div class="sw"><div><b>Bedikot</b><span>Mañana y antes de la shkiá</span></div><button class="toggle ${st.pushBedika?'on':''}" data-ptg="pushBedika"></button></div>
-    <div class="sw"><div><b>Onot</b><span>Automático en todas · ${onaWhenText()} · <a href="#" data-act-ona style="color:var(--accent)">cambiar</a></span></div><button class="toggle ${st.pushOna?'on':''}" data-ptg="pushOna"></button></div></div>
-    <div class="btns" style="margin-top:10px"><button class="btn glass small" style="flex:1" id="pTest">Probar ahora</button><button class="btn glass small danger" style="flex:1" id="pOff">Desactivar</button></div>`;
-}
-function wirePushSettings(root, st){
-  const box = root.querySelector('#pushBox');
-  const refresh = () => { box.innerHTML = pushSettingsHtml(st); wire(); };
-  const wire = () => {
-    const on = box.querySelector('[data-act="pushOn"]'); if (on) on.onclick = async () => { await doActivate(on); refresh(); };
-    box.querySelectorAll('[data-ptg]').forEach(b => b.onclick = () => { b.classList.toggle('on'); st[b.dataset.ptg] = b.classList.contains('on'); save(); });
-    const oa = box.querySelector('[data-act-ona]'); if (oa) oa.onclick = e => { e.preventDefault(); sheetOna(); };
-    const tb = box.querySelector('#pTest'); if (tb) tb.onclick = async () => {
-      try { const r = await api('POST', '/test', { id: S.push.id, token: S.push.token, text: alarmText('m', 1) }); toast(r.ok ? 'Enviado: te llega en unos segundos' : 'No se pudo enviar la prueba'); }
-      catch (e) { toast('No se pudo enviar. Revisá tu conexión.'); } };
-    const ob = box.querySelector('#pOff'); if (ob) ob.onclick = async () => { await deactivatePush(); toast('Notificaciones desactivadas'); refresh(); render(); };
+function wireNotif(root){
+  const st = S.settings, cy = sorted(), c = cy[cy.length - 1];
+  const hm = d => d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  const q = id => root.querySelector(id);
+  const on = root.querySelector('[data-act="pushOn"]'); if (on) on.onclick = async e => { e.stopPropagation(); await doActivate(on); };
+  root.querySelectorAll('[data-ptg]').forEach(b => b.onclick = () => { b.classList.toggle('on'); st[b.dataset.ptg] = b.classList.contains('on'); save(); });
+  if (q('#pTest')) q('#pTest').onclick = async () => {
+    try { const r = await api('POST', '/test', { id: S.push.id, token: S.push.token, text: alarmText('m', 1) }); toast(r.ok ? 'Enviado: te llega en unos segundos' : 'No se pudo enviar la prueba'); }
+    catch (e) { toast('No se pudo enviar. Revisá tu conexión.'); } };
+  if (q('#pOff')) q('#pOff').onclick = async () => { await deactivatePush(); toast('Notificaciones desactivadas'); render(); };
+  // Bedikot
+  wireSeg(root, 'before', v => { st.beforeShkia = +v; save(); });
+  q('#sMorning').onchange = e => { if (e.target.value) { st.morning = e.target.value; save(); } };
+  wireAlarmText(root, st);
+  if (q('#bCal')) q('#bCal').onclick = () => openIcs(buildIcs(c));
+  // Onot
+  const msg = q('#oMsg'), sum = q('#oSum'), add = q('#oAdd');
+  const future = () => T.onot(sorted(), st).filter(o => o.gDate && T.diff(o.gDate, T.today()) >= 0);
+  const upd = () => {
+    st.msgOna = msg.value; st.onaSame = q('#oSame').classList.contains('on'); st.onaPrev = q('#oPrev').classList.contains('on');
+    st.onaSameTime = q('#oSameT').value || '08:00'; st.onaPrevTime = q('#oPrevT').value || '21:00'; save();
+    q('#oPv').textContent = String(st.msgOna || '').trim() || 'Recordatorio';
+    const its = onaItems(future()), lst = its.map(it => `<b>${fShort(T.iso(it.at))} ${hm(it.at)}</b>`).join(' · ');
+    sum.innerHTML = its.length ? 'Próximos avisos de oná: ' + lst : 'Por ahora no hay onot próximas: cuando registres el próximo período, se programan solas.';
+    add.disabled = !its.length; add.style.opacity = its.length ? '' : '.5';
   };
-  wire();
+  ['#oSame', '#oPrev'].forEach(id => q(id).onclick = e => { e.currentTarget.classList.toggle('on'); upd(); });
+  ['#oSameT', '#oPrevT'].forEach(id => q(id).onchange = upd);
+  msg.oninput = upd;
+  root.querySelectorAll('[data-of]').forEach(b => b.onclick = () => { msg.value = b.dataset.of; upd(); });
+  add.onclick = () => { const its = onaItems(future()); if (its.length) downloadIcs(its); };
+  upd();
 }
 
-function sheetConfirm(text, okLabel, fn){
-  openSheet(`<h3>${text}</h3><p class="lead">Esta acción no se puede deshacer.</p>
-    <button class="btn glass danger" id="cOk">${okLabel}</button><button class="btn glass" id="cNo">Cancelar</button>`,
-    root => { root.querySelector('#cNo').onclick = () => closeSheet(); root.querySelector('#cOk').onclick = () => { fn(); closeSheet(); render(); }; });
-}
-
-function sheetSettings(){
+// ================= Pantalla Ajustes =================
+function viewAjustes(){
   const st = S.settings;
-  openSheet(`<h3>Ajustes</h3>
-    <p class="lead">Definilos con tu rav según el minhag que siguen.</p>
+  return `<div class="fade">
+    <p class="lead" style="margin:0 4px 4px;color:var(--sub)">Definilos con tu rav según el minhag que siguen.</p>
     <label class="f">Días mínimos hasta el hefsek</label>
     <div class="seg" data-seg="min">${[4,5,6,7].map(n=>`<button data-v="${n}" class="${st.minDays==n?'on':''}">${n}</button>`).join('')}</div>
     <p class="hint">Contando el día en que empezó. Muchos ashkenazím esperan 5; algunas comunidades sefaradíes, 4.</p>
@@ -980,59 +1027,51 @@ function sheetSettings(){
       <div class="sw"><div><b>Cuidar también el día 31</b><span>Además de la oná beinonit del día 30</span></div><button class="toggle ${st.day31?'on':''}" data-tg="day31"></button></div>
       <div class="sw"><div><b>Or zarúa</b><span>Separarse también en la oná anterior</span></div><button class="toggle ${st.orZarua?'on':''}" data-tg="orZarua"></button></div>
     </div>
-    <label class="f">Notificaciones</label>
-    <div id="pushBox">${pushSettingsHtml(st)}</div>
-    <label class="f">Recordatorios de bedika</label>
-    <div class="glass card" style="padding:2px 16px;margin:0">
-      <div class="sw"><div><b>Bedika de la mañana</b><span>Hora del recordatorio</span></div><input type="time" id="sMorning" value="${st.morning}" style="width:auto;min-height:40px;padding:8px 12px"></div>
-      <div class="sw" style="flex-direction:column;align-items:stretch"><div><b>Bedika de la tarde</b><span>Minutos antes de la shkiá</span></div>
-        <div class="seg" data-seg="before" style="margin-top:10px">${[10,15,20,30].map(n=>`<button data-v="${n}" class="${st.beforeShkia==n?'on':''}">${n} min</button>`).join('')}</div></div>
-    </div>
-    ${alarmTextFields(st)}
+    <label class="f">Calendario principal</label>
+    <div class="seg" data-seg="calmode2"><button data-v="greg" class="${hebMode()?'':'on'}">Gregoriano</button><button data-v="heb" class="${hebMode()?'on':''}">Hebreo</button></div>
     <label class="f">Ubicación para la shkiá</label>
-    <div class="glass card" style="padding:14px 16px;margin:0"><b id="sCity">${esc(st.city)}</b><div style="font-size:13px;color:var(--sub);margin:2px 0 10px">${(+st.lat).toFixed(3)}, ${(+st.lng).toFixed(3)} · shkiá hoy ${shkia(T.today())}</div>
+    <div class="glass card" style="padding:14px 16px;margin:0"><b>${esc(st.city)}</b><div style="font-size:13px;color:var(--sub);margin:2px 0 10px">${(+st.lat).toFixed(3)}, ${(+st.lng).toFixed(3)} · hoy amanecer ${amanecer(T.today())} · shkiá ${shkia(T.today())}</div>
       <div class="btns"><button class="btn glass small" style="flex:1" id="sGeo">Usar mi ubicación</button><button class="btn glass small" style="flex:1" id="sBA">Buenos Aires</button></div></div>
     <label class="f">Copia de seguridad</label>
     <div class="btns"><button class="btn glass small" style="flex:1" id="sExp">Exportar</button><button class="btn glass small" style="flex:1" id="sImp">Importar</button></div>
     <input type="file" id="sFile" accept="application/json" hidden>
-    <div class="glass card note" style="margin-top:18px">Los datos se guardan sólo en este teléfono; no se envían a ningún servidor. Exportá una copia de vez en cuando por si cambiás de celular.<br><br>Los cálculos son orientativos y no reemplazan la consulta con el rav.</div>
+    <div class="glass card note" style="margin-top:18px">Los datos del ciclo se guardan sólo en este teléfono. Si activás las notificaciones, al servidor de avisos sólo le llega la hora de cada aviso y el texto que elegiste. Exportá una copia de vez en cuando por si cambiás de celular.<br><br>Los cálculos son orientativos y no reemplazan la consulta con el rav.</div>
     <button class="btn glass danger" id="sWipe">Borrar todos los datos</button>
-    <button class="btn primary" id="sClose">Listo</button>`,
-  root => {
-    wireSeg(root, 'min', v => { st.minDays = +v; save(); });
-    wirePushSettings(root, st);
-    wireSeg(root, 'before', v => { st.beforeShkia = +v; save(); });
-    wireAlarmText(root, st);
-    root.querySelector('#sMorning').onchange = e => { if (e.target.value) { st.morning = e.target.value; save(); } };
-    root.querySelectorAll('[data-tg]').forEach(b => b.onclick = () => { b.classList.toggle('on'); st[b.dataset.tg] = b.classList.contains('on'); save(); });
-    root.querySelector('#sBA').onclick = () => { Object.assign(st, {lat:T.DEFAULTS.lat, lng:T.DEFAULTS.lng, city:'Buenos Aires'}); save(); sheetSettings(); };
-    root.querySelector('#sGeo').onclick = () => {
-      if (!navigator.geolocation) return toast('Ubicación no disponible');
-      navigator.geolocation.getCurrentPosition(p => { Object.assign(st, {lat:p.coords.latitude, lng:p.coords.longitude, city:'Mi ubicación'}); save(); sheetSettings(); toast('Ubicación actualizada'); },
-        () => toast('No se pudo obtener la ubicación'));
-    };
-    root.querySelector('#sExp').onclick = () => {
-      const name = 'copia-' + T.today() + '.json', txt = JSON.stringify(S, null, 2);
-      let file = null; try { file = new File([txt], name, { type: 'application/json' }); } catch(e){}
-      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file] }).catch(()=>{});
-      } else {
-        const a = document.createElement('a'); a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(txt); a.download = name;
-        document.body.appendChild(a); a.click(); a.remove();
-      }
-    };
-    const file = root.querySelector('#sFile');
-    root.querySelector('#sImp').onclick = () => file.click();
-    file.onchange = () => { const f = file.files[0]; if (!f) return; f.text().then(txt => {
-      try { const d = JSON.parse(txt); if (!Array.isArray(d.cycles)) throw 0; S = d; S.settings = Object.assign({}, T.DEFAULTS, S.settings); save(); closeSheet(); render(); toast('Copia importada'); }
-      catch(e){ toast('El archivo no es válido'); } }); };
-    root.querySelector('#sWipe').onclick = () => sheetConfirm('¿Borrar todos los datos?', 'Borrar todo', () => { S = { cycles: [], settings: Object.assign({}, T.DEFAULTS) }; save(); toast('Datos borrados'); });
-    root.querySelector('#sClose').onclick = () => { closeSheet(); render(); };
-  });
+  </div>`;
+}
+function wireAjustes(root){
+  const st = S.settings, q = id => root.querySelector(id);
+  wireSeg(root, 'min', v => { st.minDays = +v; save(); });
+  wireSeg(root, 'calmode2', v => { st.calMode = v; calAnchor = selDay; save(); });
+  root.querySelectorAll('[data-tg]').forEach(b => b.onclick = () => { b.classList.toggle('on'); st[b.dataset.tg] = b.classList.contains('on'); save(); });
+  q('#sBA').onclick = () => { Object.assign(st, {lat:T.DEFAULTS.lat, lng:T.DEFAULTS.lng, city:'Buenos Aires'}); save(); render(); };
+  q('#sGeo').onclick = () => {
+    if (!navigator.geolocation) return toast('Ubicación no disponible');
+    navigator.geolocation.getCurrentPosition(p => { Object.assign(st, {lat:p.coords.latitude, lng:p.coords.longitude, city:'Mi ubicación'}); save(); render(); toast('Ubicación actualizada'); },
+      () => toast('No se pudo obtener la ubicación'));
+  };
+  q('#sExp').onclick = () => {
+    const name = 'copia-' + T.today() + '.json', txt = JSON.stringify(S, null, 2);
+    let file = null; try { file = new File([txt], name, { type: 'application/json' }); } catch(e){}
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file] }).catch(()=>{});
+    else { const a = document.createElement('a'); a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(txt); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+  };
+  const file = q('#sFile');
+  q('#sImp').onclick = () => file.click();
+  file.onchange = () => { const f = file.files[0]; if (!f) return; f.text().then(txt => {
+    try { const d = JSON.parse(txt); if (!Array.isArray(d.cycles)) throw 0; S = d; S.settings = Object.assign({}, T.DEFAULTS, S.settings); save(); render(); toast('Copia importada'); }
+    catch(e){ toast('El archivo no es válido'); } }); };
+  q('#sWipe').onclick = () => sheetConfirm('¿Borrar todos los datos?', 'Borrar todo', () => { S = { cycles: [], settings: Object.assign({}, T.DEFAULTS) }; save(); toast('Datos borrados'); });
+}
+
+function sheetConfirm(text, okLabel, fn){
+  openSheet(`<h3>${text}</h3><p class="lead">Esta acción no se puede deshacer.</p>
+    <button class="btn glass danger" id="cOk">${okLabel}</button><button class="btn glass" id="cNo">Cancelar</button>`,
+    root => { root.querySelector('#cNo').onclick = () => closeSheet(); root.querySelector('#cOk').onclick = () => { fn(); closeSheet(); render(); }; });
 }
 
 // ---------------- Eventos ----------------
-document.getElementById('tabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; tab = b.dataset.tab; render(); window.scrollTo({top:0, behavior:'smooth'}); };
+document.getElementById('tabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; goTab(b.dataset.tab); };
 app.addEventListener('click', e => {
   const b = e.target.closest('[data-seg="calmode"] button'); if (!b) return;
   S.settings.calMode = b.dataset.v; calAnchor = selDay; save(); render();
@@ -1049,10 +1088,11 @@ app.onclick = e => {
     case 'stain': sheetStain(); break;
     case 'mikveDone': last.mikveDone = true; save(); render(); toast('¡Mazal tov! Ciclo completo'); break;
     case 'bed': { last.bedikot = last.bedikot || {}; const k = el.dataset.k; last.bedikot[k] = !last.bedikot[k]; save(); render(); break; }
-    case 'settings': sheetSettings(); break;
-    case 'alarms': sheetAlarms(last); break;
-    case 'pushOn': doActivate(el); break;
+    case 'settings': goTab('ajustes'); break;
+    case 'alarms': goTab('notif', 'secBed'); break;
+    case 'pushOn': if (tab !== 'notif') doActivate(el); break;
     case 'onaRem': sheetOna(); break;
+    case 'gonotif': goTab('notif'); break;
     case 'onaPushOn': S.settings.pushOna = true; save(); render(); toast('Avisos de onot prendidos'); break;
     case 'sel': selDay = el.dataset.d; if (!inRange(selDay, monthRange(calAnchor))) calAnchor = selDay; render(); break;
     case 'mprev': case 'mnext': shiftMonth(act === 'mnext' ? 1 : -1); render(); break;
@@ -1062,7 +1102,7 @@ app.onclick = e => {
 
 // Swipe en el calendario
 let tx = null;
-app.addEventListener('touchstart', e => { if (tab==='cal' && e.target.closest('.grid')) tx = e.touches[0].clientX; }, {passive:true});
+app.addEventListener('touchstart', e => { if (tab==='cal' && e.target.closest('.calrows')) tx = e.touches[0].clientX; }, {passive:true});
 app.addEventListener('touchend', e => { if (tx===null) return; const dx = e.changedTouches[0].clientX - tx; tx = null;
   if (Math.abs(dx) > 50){ shiftMonth(dx < 0 ? 1 : -1); render(); } });
 
