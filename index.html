@@ -540,7 +540,7 @@ function viewCal(){
       return `<div class="${cls}" data-act="sel" data-d="${d}">${x.hefsekFrom && inM ? '<i class="hf"></i>' : ''}
         <span class="gn" style="${fg && d !== t ? 'color:' + fg : ''}">${big}</span>
         <span class="hd">${h.onaTop ? ICON.sun.replace('<svg', '<svg class="mi"') : ''}${small}</span>
-        <span class="hn" style="${nfg ? 'color:' + nfg + ';font-weight:650' : ''}">${h.onaBot ? ICON.moon.replace('<svg', '<svg class="mi"') : ''}${hn}</span></div>`;
+        <span class="hn" style="${nfg ? 'color:' + nfg + ';font-weight:650' : ''}">${h.onaBot ? ICON.moon.replace('<svg', '<svg class="mi"') : ''}${heb ? '' : hn}</span></div>`;
     }).join('');
     rows += `<div class="cr">${segs}${cells}</div>`;
   }
@@ -553,7 +553,7 @@ function viewCal(){
     <div class="calrows">${rows}</div>
     <div class="legend"><span><i style="background:var(--nida)"></i>Nidá</span><span><i style="background:var(--clean)"></i>Shivá nekiím</span>
     <span><i style="background:var(--mikve)"></i>Mikve</span><span><i style="background:var(--ona)"></i>Oná</span></div>
-    <p class="hint" style="margin:8px 12px 0;font-size:12px">${heb ? 'Número grande: fecha hebrea' : 'Número grande: fecha gregoriana'} · debajo: ${heb ? 'fecha gregoriana' : 'fecha hebrea del día'} · abajo: fecha hebrea desde la shkiá (la noche).</p></div>`;
+    <p class="hint" style="margin:8px 12px 0;font-size:12px">${heb ? 'Número grande: fecha hebrea · debajo: fecha gregoriana. La franja de abajo es la noche.' : 'Número grande: fecha gregoriana · debajo: fecha hebrea del día · abajo: fecha hebrea desde la shkiá (la noche).'}</p></div>`;
   h += dayDetail(selDay, mk[selDay] || {onot:[]});
   if (!inRange(t, r)) h += `<button class="btn glass" data-act="mtoday">Volver a hoy</button>`;
   return h;
