@@ -144,6 +144,7 @@ header.top{display:flex;align-items:flex-start;justify-content:space-between;mar
 .ona-t small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint);font-weight:650}
 .ona-t b{display:block;font-size:15px;font-weight:650;white-space:nowrap}
 .ona-t span{display:block;font-size:12px;color:var(--sub)}
+.ona-t em{display:block;font-style:normal;font-size:14px;font-weight:600;color:var(--accent);margin-top:1px}
 .ona-bar{height:6px;border-radius:9px;display:block}
 .ona-bar.n{background:linear-gradient(90deg,#f0a020,#2b2a5c 25%,#2b2a5c 75%,#f7c95c)}
 .ona-bar.d{background:linear-gradient(90deg,#f7c95c,#f0a020 50%,#f7c95c)}
@@ -280,9 +281,9 @@ function onaBlock(o, past){
   return `<div class="ona-b${past ? ' past' : ''}">
     <div class="ona-h"><span class="ona-pill ${night ? 'n' : 'd'}">${night ? ICON.moon : ICON.sun}${night ? 'De noche' : 'De día'}</span><b>${esc(o.label)}</b></div>
     <div class="ona-t">
-      <div><small>Empieza</small><b>${from}</b><span>${night ? 'a la shkiá' : 'al amanecer'}</span></div>
+      <div><small>Empieza</small><b>${from}</b><em>${hebShort(o.hd)}</em><span>${night ? 'a la shkiá' : 'al amanecer'}</span></div>
       <i class="ona-bar ${night ? 'n' : 'd'}"></i>
-      <div style="text-align:right"><small>Termina</small><b>${to}</b><span>${night ? 'al amanecer' : 'a la shkiá'}</span></div>
+      <div style="text-align:right"><small>Termina</small><b>${to}</b><em>${hebShort(o.hd)}</em><span>${night ? 'al amanecer' : 'a la shkiá'}</span></div>
     </div></div>`;
 }
 
