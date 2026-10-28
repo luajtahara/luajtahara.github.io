@@ -146,7 +146,7 @@ p{color:var(--sub);font-size:16px;line-height:1.45;margin:0 0 14px}
       var g = groups[k].sort(function(a, b){ return a.d - b.d; });
       var consecutive = g.length > 1 && g.every(function(e, i){ return i === 0 || dayKey(e.d) - dayKey(g[i-1].d) === 1; });
       if (consecutive) {
-        // la hora más temprana de la semana, para que siempre sea antes de la shkiá
+        // la hora más temprana de la semana, para que siempre sea antes de la shekiá
         var mins = Math.min.apply(null, g.map(function(e){ return e.d.getHours() * 60 + e.d.getMinutes(); }));
         var st = new Date(g[0].d); st.setHours(Math.floor(mins / 60), mins % 60, 0, 0);
         items.push({ t: g[0].t, d: st, n: g.length });

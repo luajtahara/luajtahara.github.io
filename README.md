@@ -2,7 +2,7 @@
 
 App web (instalable en el iPhone) para llevar el calendario de taharat hamishpajá:
 inicio del período (de día o de noche), hefsek tahará, shivá nekiím con bedikot,
-noche de mikve y onot perishá (oná beinonit, veset hajódesh y veset haflagá),
+noche de mikve y onot perishá (oná benonit, veset hajódesh y veset haflagá),
 con fecha hebrea y gregoriana.
 
 - Los datos se guardan sólo en el teléfono (localStorage). No hay servidor.

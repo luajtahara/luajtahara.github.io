@@ -1,7 +1,7 @@
 /* Tahará — motor de cálculo (calendario hebreo, hefsek, shivá nekiím, onot perishá).
    Todas las fechas se manejan como 'YYYY-MM-DD' (fecha gregoriana local).
-   "Día hebreo" (hd) = la fecha gregoriana cuyo DÍA (de amanecer a shkiá) corresponde a esa fecha hebrea.
-   Una oná de NOCHE de un día hebreo hd cae en la noche gregoriana anterior (hd-1, desde la shkiá). */
+   "Día hebreo" (hd) = la fecha gregoriana cuyo DÍA (de amanecer a shekiá) corresponde a esa fecha hebrea.
+   Una oná de NOCHE de un día hebreo hd cae en la noche gregoriana anterior (hd-1, desde la shekiá). */
 (function (G) {
   'use strict';
 
@@ -45,7 +45,7 @@
   }
   function hebLabel(s) { const h = heb(s); return h.day + ' de ' + h.month + ' ' + h.year; }
 
-  // ---------- Shkiá (puesta del sol, algoritmo tipo SunCalc) ----------
+  // ---------- Shekiá (puesta del sol, algoritmo tipo SunCalc) ----------
   function sunset(s, lat, lng, rise) {
     const rad = Math.PI / 180, J0 = 0.0009, e = rad * 23.4397;
     const d = parse(s).valueOf() / 864e5 - 0.5 + 2440588 - 2451545;
@@ -72,7 +72,7 @@
   const DEFAULTS = {
     minDays: 5,          // días mínimos hasta el hefsek (contando el día del inicio)
     morning: '07:00',    // alarma de bedika de la mañana
-    beforeShkia: 15,     // minutos antes de la shkiá para la bedika de la tarde
+    beforeShkia: 15,     // minutos antes de la shekiá para la bedika de la tarde
     msgMorning: 'Recordatorio',  // texto de la alarma de la mañana (lo elige cada mujer)
     msgEvening: 'Recordatorio',  // texto de la alarma de la tarde
     showDay: false,      // agregar el número de día (1/7) al texto
@@ -81,12 +81,12 @@
     onaPrev: false, onaPrevTime: '21:00',  // avisar el día anterior
     pushBedika: true, pushOna: true,       // qué avisar por notificación
     calMode: 'greg',     // calendario principal: 'greg' (gregoriano) o 'heb' (hebreo)
-    day31: false,        // agregar el día 31 a la oná beinonit
+    day31: false,        // agregar el día 31 a la oná benonit
     orZarua: false,      // cuidar también la oná anterior (or zarúa)
     lat: -34.6037, lng: -58.3816, city: 'Buenos Aires'
   };
 
-  // Día hebreo del inicio: si empezó de noche (después de la shkiá) ya es el día hebreo siguiente.
+  // Día hebreo del inicio: si empezó de noche (después de la shekiá) ya es el día hebreo siguiente.
   // Si fue antes del amanecer (madrugada), la noche ya es de ese mismo día hebreo.
   const startHd = c => c.onah === 'night' ? (c.preDawn ? c.onset : add(c.onset, 1)) : c.onset;
 
@@ -106,7 +106,7 @@
     st = Object.assign({}, DEFAULTS, st);
     if (!cycles.length) return [];
     const c = cycles[cycles.length - 1], hd = startHd(c), out = [];
-    out.push({ kind: 'beinonit', label: 'Oná beinonit (día 30)', hd: add(hd, 29), onah: c.onah });
+    out.push({ kind: 'beinonit', label: 'Oná benonit (día 30)', hd: add(hd, 29), onah: c.onah });
     if (st.day31) out.push({ kind: 'beinonit31', label: 'Día 31', hd: add(hd, 30), onah: c.onah });
     const ch = sameHebDayNextMonth(hd);
     if (ch.hd) out.push({ kind: 'jodesh', label: 'Veset hajódesh', hd: ch.hd, onah: c.onah });
@@ -126,7 +126,7 @@
     // Rango gregoriano real de cada oná
     out.forEach(o => {
       if (!o.hd) return;
-      o.gDate = o.onah === 'night' ? add(o.hd, -1) : o.hd; // fecha en que empieza (noche = desde la shkiá del día anterior)
+      o.gDate = o.onah === 'night' ? add(o.hd, -1) : o.hd; // fecha en que empieza (noche = desde la shekiá del día anterior)
     });
     return out.sort((a, b) => (a.hd || '9') < (b.hd || '9') ? -1 : 1);
   }

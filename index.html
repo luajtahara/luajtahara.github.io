@@ -342,9 +342,9 @@ function onaBlock(o, past){
   return `<div class="ona-b${past ? ' past' : ''}">
     <div class="ona-h"><span class="ona-pill ${night ? 'n' : 'd'}">${night ? ICON.moon : ICON.sun}${night ? 'De noche' : 'De día'}</span><b>${esc(o.label)}</b></div>
     <div class="ona-t">
-      <div><small>Empieza</small><b>${from}</b><em>${hebShort(o.hd)}</em><span>${night ? 'a la shkiá' : 'al amanecer'}</span></div>
+      <div><small>Empieza</small><b>${from}</b><em>${hebShort(o.hd)}</em><span>${night ? 'a la shekiá' : 'al amanecer'}</span></div>
       <i class="ona-bar ${night ? 'n' : 'd'}"></i>
-      <div style="text-align:right"><small>Termina</small><b>${to}</b><em>${hebShort(o.hd)}</em><span>${night ? 'al amanecer' : 'a la shkiá'}</span></div>
+      <div style="text-align:right"><small>Termina</small><b>${to}</b><em>${hebShort(o.hd)}</em><span>${night ? 'al amanecer' : 'a la shekiá'}</span></div>
     </div></div>`;
 }
 
@@ -372,7 +372,7 @@ function viewHoy(){
       <p>Empezó el ${onsetWhen(c)}, ${c.onah==='night'?'de noche':'de día'}.</p></div></div>`;
     h += `<div class="sec-title">Próximo paso</div><div class="glass card" style="padding:4px 16px">
       <div class="row">${dot('clean','check')}<div class="t"><b>Hefsek tahará</b>
-      <span>${st.canHefsek ? 'Ya se puede hacer' : 'A partir del ' + fLong(ci.earliestHefsek)}, antes de la shkiá (${shkia(st.canHefsek ? t : ci.earliestHefsek)})</span></div></div></div>`;
+      <span>${st.canHefsek ? 'Ya se puede hacer' : 'A partir del ' + fLong(ci.earliestHefsek)}, antes de la shekiá (${shkia(st.canHefsek ? t : ci.earliestHefsek)})</span></div></div></div>`;
     h += `<button class="btn primary" data-act="hefsek">${ICON.check} Registrar hefsek tahará</button>
       <button class="btn glass" data-act="edit" data-id="${c.id}">Corregir el inicio</button>`;
   }
@@ -455,7 +455,7 @@ function onotCard(cy, t){
 }
 
 // ---------------- Pantalla: Calendario ----------------
-// Cada fecha del calendario se parte en dos: arriba el día (hasta la shkiá), abajo la noche,
+// Cada fecha del calendario se parte en dos: arriba el día (hasta la shekiá), abajo la noche,
 // que ya es el día hebreo siguiente. Estado por "día hebreo" (clave = fecha de su parte de día).
 function halfMarks(cy, st, t){
   const day = {}, mikveNight = {}, onaTop = {}, onaBot = {};
@@ -546,7 +546,7 @@ function viewCal(){
     <div class="calrows">${rows}</div>
     <div class="legend"><span><i style="background:var(--nida)"></i>Nidá</span><span><i style="background:var(--clean)"></i>Shivá nekiím</span>
     <span><i style="background:var(--mikve)"></i>Mikve</span><span><i style="background:var(--ona)"></i>Oná</span></div>
-    <p class="hint" style="margin:8px 12px 0;font-size:12px">${heb ? 'Número grande: fecha hebrea · debajo: fecha gregoriana. La franja de abajo es la noche.' : 'Número grande: fecha gregoriana · debajo: fecha hebrea del día · abajo: fecha hebrea desde la shkiá (la noche).'}</p></div>`;
+    <p class="hint" style="margin:8px 12px 0;font-size:12px">${heb ? 'Número grande: fecha hebrea · debajo: fecha gregoriana. La franja de abajo es la noche.' : 'Número grande: fecha gregoriana · debajo: fecha hebrea del día · abajo: fecha hebrea desde la shekiá (la noche).'}</p></div>`;
   h += dayDetail(selDay, mk[selDay] || {onot:[]});
   if (!inRange(t, r)) h += `<button class="btn glass" data-act="mtoday">Volver a hoy</button>`;
   return h;
@@ -554,10 +554,10 @@ function viewCal(){
 
 function dayDetail(s, x){
   let rows = '';
-  if (x.start) rows += `<div class="row">${dot('nida','drop')}<div class="t"><b>Inicio del período</b><span>${x.startCycle && x.startCycle.time ? 'A las ' + x.startCycle.time + ' · ' : ''}${x.startNight ? (x.startCycle && x.startCycle.preDawn ? 'De noche (madrugada)' : 'De noche (después de la shkiá)') : 'De día'}</span></div></div>`;
+  if (x.start) rows += `<div class="row">${dot('nida','drop')}<div class="t"><b>Inicio del período</b><span>${x.startCycle && x.startCycle.time ? 'A las ' + x.startCycle.time + ' · ' : ''}${x.startNight ? (x.startCycle && x.startCycle.preDawn ? 'De noche (madrugada)' : 'De noche (después de la shekiá)') : 'De día'}</span></div></div>`;
   else if (x.nida) rows += `<div class="row">${dot('nida','drop')}<div class="t"><b>${x.projected?'Nidá (estimado)':'Nidá'}</b><span>${x.projected?'Hasta que se haga el hefsek':'Separados'}</span></div></div>`;
-  if (x.hefsekFrom) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Primer día posible para el hefsek</b><span>Antes de la shkiá (${shkia(s)})</span></div></div>`;
-  if (x.hefsek) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Hefsek tahará</b><span>Antes de la shkiá (${shkia(s)})</span></div></div>`;
+  if (x.hefsekFrom) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Primer día posible para el hefsek</b><span>Antes de la shekiá (${shkia(s)})</span></div></div>`;
+  if (x.hefsek) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Hefsek tahará</b><span>Antes de la shekiá (${shkia(s)})</span></div></div>`;
   if (x.clean) rows += `<div class="row">${dot('clean','check')}<div class="t"><b>Shivá nekiím · día ${x.clean} de 7</b><span>Bedikot a la mañana y a la tarde</span></div></div>`;
   if (x.mikve) rows += `<div class="row">${dot('mikve','wave')}<div class="t"><b>Noche de mikve</b><span>Después de tzet hakojavim</span></div></div>`;
   x.onot.forEach(o => rows += onaBlock(o, false));
@@ -566,7 +566,7 @@ function dayDetail(s, x){
   return `<div class="glass card fade" style="padding:16px 16px 6px">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:0 2px 6px">
       <b style="font-size:18px">${fLong(s)}</b><span class="he" style="color:var(--sub);font-size:15px">${hebHe(s)}</span></div>
-    <div style="color:var(--sub);font-size:14px;padding:0 2px 8px">${T.hebLabel(s)} · shkiá ${shkia(s)}<br>Desde la shkiá ya es ${hebShort(T.add(s,1))}</div>
+    <div style="color:var(--sub);font-size:14px;padding:0 2px 8px">${T.hebLabel(s)} · shekiá ${shkia(s)}<br>Desde la shekiá ya es ${hebShort(T.add(s,1))}</div>
     ${rows}</div>`;
 }
 
@@ -659,16 +659,16 @@ function classifyOnset(date, time){
   if (!rise || !set) return null;
   const near = Math.min(Math.abs(at - set), Math.abs(at - rise)) <= 20 * 60000;
   if (at < rise) return { onah: 'night', preDawn: true, near, why: `${time} es antes del amanecer (${amanecer(date)}): es la noche que empezó el día anterior a la tarde` };
-  if (at >= set) return { onah: 'night', preDawn: false, near, why: `${time} es después de la shkiá (${shkia(date)}): cuenta como de noche` };
-  return { onah: 'day', preDawn: false, near, why: `${time} es entre el amanecer (${amanecer(date)}) y la shkiá (${shkia(date)}): cuenta como de día` };
+  if (at >= set) return { onah: 'night', preDawn: false, near, why: `${time} es después de la shekiá (${shkia(date)}): cuenta como de noche` };
+  return { onah: 'day', preDawn: false, near, why: `${time} es entre el amanecer (${amanecer(date)}) y la shekiá (${shkia(date)}): cuenta como de día` };
 }
 const onsetHd = (date, onah, preDawn) => onah === 'night' ? (preDawn ? date : T.add(date, 1)) : date;
 function onsetHint(date, onah, preDawn, cls){
   if (!date) return '';
   const hd = onsetHd(date, onah, preDawn);
-  let h = cls ? `<b>${cls.why}.</b><br>` : (onah === 'night' ? `Después de la shkiá (${shkia(date)}) ya cuenta como el día hebreo siguiente.<br>` : `Shkiá de ese día: ${shkia(date)}.<br>`);
+  let h = cls ? `<b>${cls.why}.</b><br>` : (onah === 'night' ? `Después de la shekiá (${shkia(date)}) ya cuenta como el día hebreo siguiente.<br>` : `Shekiá de ese día: ${shkia(date)}.<br>`);
   h += `Fecha hebrea: <b>${T.hebLabel(hd)}</b> · <span class="he">${hebHe(hd)}</span>`;
-  if (cls && cls.near) h += `<br><b style="color:var(--nida)">Está muy cerca de la shkiá o del amanecer.</b> Si hay duda, consultá con el rav y, si hace falta, cambiá “De día / De noche” a mano.`;
+  if (cls && cls.near) h += `<br><b style="color:var(--nida)">Está muy cerca de la shekiá o del amanecer.</b> Si hay duda, consultá con el rav y, si hace falta, cambiá “De día / De noche” a mano.`;
   return h;
 }
 const onsetWhen = c => `${fShort(c.onset)}${c.time ? ' a las ' + c.time : ''}`;
@@ -721,7 +721,7 @@ function sheetCycle(c){
 function sheetHefsek(){
   const cy = sorted(), c = cy[cy.length-1], ci = T.cycleInfo(c, S.settings), t = T.today();
   const def = T.diff(t, ci.earliestHefsek) >= 0 ? t : ci.earliestHefsek;
-  openSheet(`<h3>Hefsek tahará</h3><p class="lead">Se hace antes de la shkiá. Al día siguiente empieza el primer día de shivá nekiím.</p>
+  openSheet(`<h3>Hefsek tahará</h3><p class="lead">Se hace antes de la shekiá. Al día siguiente empieza el primer día de shivá nekiím.</p>
     <label class="f">Fecha del hefsek</label><input type="date" id="fHef" value="${def}" min="${c.onset}">
     <p class="hint" id="fHint"></p>
     <div style="margin-top:22px"><button class="btn primary" id="fSave">${ICON.check} Confirmar hefsek</button><button class="btn glass" id="fCancel">Cancelar</button></div>`,
@@ -730,7 +730,7 @@ function sheetHefsek(){
     const upd = () => { const v = inp.value; if (!v) return;
       const early = T.diff(v, ci.earliestHefsek) < 0;
       root.querySelector('#fHint').innerHTML = (early ? `<b style="color:var(--nida)">Atención:</b> es antes del día ${S.settings.minDays} (${fShort(ci.earliestHefsek)}). Consultá con el rav.<br>` : '') +
-        `Shkiá: <b>${shkia(v)}</b> · Shivá nekiím: ${fShort(T.add(v,1))} al ${fShort(T.add(v,7))} · Mikve: noche del ${fShort(T.add(v,7))}`; };
+        `Shekiá: <b>${shkia(v)}</b> · Shivá nekiím: ${fShort(T.add(v,1))} al ${fShort(T.add(v,7))} · Mikve: noche del ${fShort(T.add(v,7))}`; };
     upd(); inp.oninput = upd;
     root.querySelector('#fCancel').onclick = () => closeSheet();
     root.querySelector('#fSave').onclick = () => { if (!inp.value) return; c.hefsek = inp.value; c.bedikot = {}; save(); render();
@@ -762,7 +762,7 @@ function bedikaTimes(c){
     const m = T.parse(s); m.setHours(hh, mm || 0, 0, 0);
     out.push({ day: i + 1, date: s, slot: 'm', at: m, label: 'mañana' });
     const ss = T.sunset(s, st.lat, st.lng);
-    if (ss) out.push({ day: i + 1, date: s, slot: 't', at: new Date(Math.floor((ss.getTime() - (st.beforeShkia || 15) * 60000) / 60000) * 60000), label: 'antes de la shkiá', shkia: ss });
+    if (ss) out.push({ day: i + 1, date: s, slot: 't', at: new Date(Math.floor((ss.getTime() - (st.beforeShkia || 15) * 60000) / 60000) * 60000), label: 'antes de la shekiá', shkia: ss });
   });
   return out;
 }
@@ -815,7 +815,7 @@ function sheetAlarms(c){
   const hm = d => d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   const rows = list.filter(b => b.slot === 't').map(b => `<div class="d">Día ${b.day}</div><div class="dt">${fShort(b.date)}</div><div class="dt" style="text-align:right">${S.settings.morning}</div><div class="dt" style="text-align:right">${hm(b.at)}</div>`).join('');
   openSheet(`<h3>Recordatorios de bedika</h3>
-    <p class="lead">${pushOn() && S.settings.pushBedika ? `Ya están programados como notificaciones: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shkiá, durante la shivá nekiím. Si cambiás el texto, se actualizan solos.` : `Se agregan ${list.length} recordatorios: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shkiá, durante la shivá nekiím. Suenan aunque la app esté cerrada.`}</p>
+    <p class="lead">${pushOn() && S.settings.pushBedika ? `Ya están programados como notificaciones: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shekiá, durante la shivá nekiím. Si cambiás el texto, se actualizan solos.` : `Se agregan ${list.length} recordatorios: a las ${S.settings.morning} y ${S.settings.beforeShkia} minutos antes de la shekiá, durante la shivá nekiím. Suenan aunque la app esté cerrada.`}</p>
     ${pushOn() ? '' : pushCardHtml(true)}
     ${alarmTextFields(S.settings)}
     <label class="f">Horarios</label>
@@ -986,7 +986,7 @@ function viewNotif(){
     <div class="glass card" style="padding:2px 16px">
       ${pushOn() ? `<div class="sw"><div><b>Avisarme las bedikot</b><span>Se programan solas al registrar el hefsek</span></div><button class="toggle ${st.pushBedika?'on':''}" data-ptg="pushBedika"></button></div>` : ''}
       <div class="sw"><div><b>Bedika de la mañana</b><span>Hora del aviso</span></div><input type="time" id="sMorning" value="${st.morning}" style="width:auto;min-height:40px;padding:8px 12px"></div>
-      <div class="sw" style="flex-direction:column;align-items:stretch"><div><b>Bedika de la tarde</b><span>Minutos antes de la shkiá</span></div>
+      <div class="sw" style="flex-direction:column;align-items:stretch"><div><b>Bedika de la tarde</b><span>Minutos antes de la shekiá</span></div>
         <div class="seg" data-seg="before" style="margin-top:10px">${[10,15,20,30].map(n=>`<button data-v="${n}" class="${st.beforeShkia==n?'on':''}">${n} min</button>`).join('')}</div></div>
     </div>
     ${alarmTextFields(st)}
@@ -1054,13 +1054,13 @@ function viewAjustes(){
     <p class="hint">Contando el día en que empezó. Muchos ashkenazím esperan 5; algunas comunidades sefaradíes, 4.</p>
     <label class="f">Onot perishá</label>
     <div class="glass card" style="padding:2px 16px;margin:0">
-      <div class="sw"><div><b>Cuidar también el día 31</b><span>Además de la oná beinonit del día 30</span></div><button class="toggle ${st.day31?'on':''}" data-tg="day31"></button></div>
+      <div class="sw"><div><b>Cuidar también el día 31</b><span>Además de la oná benonit del día 30</span></div><button class="toggle ${st.day31?'on':''}" data-tg="day31"></button></div>
       <div class="sw"><div><b>Or zarúa</b><span>Separarse también en la oná anterior</span></div><button class="toggle ${st.orZarua?'on':''}" data-tg="orZarua"></button></div>
     </div>
     <label class="f">Calendario principal</label>
     <div class="seg" data-seg="calmode2"><button data-v="greg" class="${hebMode()?'':'on'}">Gregoriano</button><button data-v="heb" class="${hebMode()?'on':''}">Hebreo</button></div>
-    <label class="f">Ubicación para la shkiá</label>
-    <div class="glass card" style="padding:14px 16px;margin:0"><b>${esc(st.city)}</b><div style="font-size:13px;color:var(--sub);margin:2px 0 10px">${(+st.lat).toFixed(3)}, ${(+st.lng).toFixed(3)} · hoy amanecer ${amanecer(T.today())} · shkiá ${shkia(T.today())}</div>
+    <label class="f">Ubicación para la shekiá</label>
+    <div class="glass card" style="padding:14px 16px;margin:0"><b>${esc(st.city)}</b><div style="font-size:13px;color:var(--sub);margin:2px 0 10px">${(+st.lat).toFixed(3)}, ${(+st.lng).toFixed(3)} · hoy amanecer ${amanecer(T.today())} · shekiá ${shkia(T.today())}</div>
       <div class="btns"><button class="btn glass small" style="flex:1" id="sGeo">Usar mi ubicación</button><button class="btn glass small" style="flex:1" id="sBA">Buenos Aires</button></div></div>
     <label class="f">Copia de seguridad</label>
     <div class="btns"><button class="btn glass small" style="flex:1" id="sExp">Exportar</button><button class="btn glass small" style="flex:1" id="sImp">Importar</button></div>
