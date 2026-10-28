@@ -71,6 +71,10 @@ header.top{display:flex;align-items:flex-start;justify-content:space-between;mar
 .top h1{font-size:34px;font-weight:800;letter-spacing:-.6px;margin:0}
 .top .date{font-size:15px;color:var(--sub);margin-top:4px;line-height:1.35}
 .top .date b{color:var(--text);font-weight:600}
+input.tin{width:124px!important;min-width:124px;flex:0 0 124px;min-height:42px;padding:8px 10px!important;text-align:center;font-size:17px;font-variant-numeric:tabular-nums}
+input.tin::-webkit-date-and-time-value{text-align:center}
+input.tin::-webkit-calendar-picker-indicator{display:none}
+.sw > div:first-child{flex:1;min-width:0}
 .suntimes{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .suntimes span{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--sub);padding:6px 12px 6px 9px;border-radius:99px;background:var(--glass);border:1px solid var(--stroke-soft);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
 .suntimes svg{width:18px;height:18px}
@@ -991,7 +995,7 @@ function viewNotif(){
     <div class="sec-title" id="secBed">Bedikot (shivá nekiím)</div>
     <div class="glass card" style="padding:2px 16px">
       ${pushOn() ? `<div class="sw"><div><b>Avisarme las bedikot</b><span>Se programan solas al registrar el hefsek</span></div><button class="toggle ${st.pushBedika?'on':''}" data-ptg="pushBedika"></button></div>` : ''}
-      <div class="sw"><div><b>Bedika de la mañana</b><span>Hora del aviso</span></div><input type="time" id="sMorning" value="${st.morning}" style="width:auto;min-height:40px;padding:8px 12px"></div>
+      <div class="sw"><div><b>Bedika de la mañana</b><span>Hora del aviso</span></div><input type="time" id="sMorning" class="tin" value="${st.morning}"></div>
       <div class="sw" style="flex-direction:column;align-items:stretch"><div><b>Bedika de la tarde</b><span>Minutos antes de la shekiá</span></div>
         <div class="seg" data-seg="before" style="margin-top:10px">${[10,15,20,30].map(n=>`<button data-v="${n}" class="${st.beforeShkia==n?'on':''}">${n} min</button>`).join('')}</div></div>
     </div>
@@ -1002,9 +1006,9 @@ function viewNotif(){
     <div class="glass card" style="padding:2px 16px">
       ${pushOn() ? `<div class="sw"><div><b>Avisarme las onot</b><span>Automático en todas, también en los próximos ciclos</span></div><button class="toggle ${st.pushOna?'on':''}" data-ptg="pushOna"></button></div>` : ''}
       <div class="sw"><div><b>El mismo día</b></div><div style="display:flex;gap:10px;align-items:center">
-        <input type="time" id="oSameT" value="${st.onaSameTime}" style="width:auto;min-height:40px;padding:8px 12px"><button class="toggle ${st.onaSame?'on':''}" id="oSame"></button></div></div>
+        <input type="time" id="oSameT" class="tin" value="${st.onaSameTime}"><button class="toggle ${st.onaSame?'on':''}" id="oSame"></button></div></div>
       <div class="sw"><div><b>El día anterior</b></div><div style="display:flex;gap:10px;align-items:center">
-        <input type="time" id="oPrevT" value="${st.onaPrevTime}" style="width:auto;min-height:40px;padding:8px 12px"><button class="toggle ${st.onaPrev?'on':''}" id="oPrev"></button></div></div>
+        <input type="time" id="oPrevT" class="tin" value="${st.onaPrevTime}"><button class="toggle ${st.onaPrev?'on':''}" id="oPrev"></button></div></div>
     </div>
     <label class="f">Texto del aviso de oná</label>
     <input type="text" id="oMsg" maxlength="60" value="${esc(st.msgOna)}" placeholder="Escribí lo que quieras">
