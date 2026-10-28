@@ -2,7 +2,7 @@
 // Guarda, por teléfono, sólo la hora de cada aviso y el texto que eligió ella. Cada minuto manda los que tocan.
 import { generateVapid, sendPush } from './webpush.js';
 
-const ORIGINS = ['https://luajtahara.github.io'];
+const ORIGINS = ['https://mi-agenda-app.github.io', 'https://luajtahara.github.io'];
 const SUBJECT = 'https://luajtahara.github.io';
 const MAX_ITEMS = 80, MAX_TEXT = 80;
 
