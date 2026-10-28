@@ -25,7 +25,7 @@
   --mikve:#2f86ff; --mikve-bg:rgba(47,134,255,.18);
   --ona:#f0a020; --ona-bg:rgba(240,160,32,.2);
   --night:rgba(43,42,92,.07); --night-line:rgba(43,42,92,.16);
-  --nida-bg2:rgba(214,60,105,.28); --clean-bg2:rgba(16,150,118,.28); --row-line:rgba(60,40,120,.06); --ink:#2e3566; --bar:rgba(250,247,255,.9); --sel-bg:rgba(30,25,60,.07); --pill-a:rgba(255,255,255,.95); --pill-b:rgba(240,234,255,.75); --pill-line:rgba(255,255,255,.95);
+  --nida-bg2:rgba(214,60,105,.28); --clean-bg2:rgba(16,150,118,.28); --row-line:rgba(60,40,120,.06); --ink:#2e3566; --bar:rgba(255,255,255,.5); --sel-bg:rgba(30,25,60,.07); --pill-a:rgba(255,255,255,.95); --pill-b:rgba(240,234,255,.75); --pill-line:rgba(255,255,255,.95);
   --bg1:#f6f1ff; --bg2:#ffe7f0; --bg3:#e3f4ff;
   --blob1:#c7b4ff; --blob2:#ffb8cf; --blob3:#9fe0ff;
 }
@@ -38,7 +38,7 @@
   --bg1:#100c20; --bg2:#1b1030; --bg3:#0b1a2a;
   --blob1:#4b2fa8; --blob2:#7a2452; --blob3:#145a7a;
   --night:rgba(0,0,20,.28); --night-line:rgba(255,255,255,.12);
-  --nida-bg2:rgba(242,85,127,.32); --clean-bg2:rgba(24,184,146,.32); --row-line:rgba(255,255,255,.06); --ink:#d9d4ff; --bar:rgba(22,18,42,.92); --sel-bg:rgba(255,255,255,.1); --pill-a:rgba(120,100,220,.38); --pill-b:rgba(80,60,170,.22); --pill-line:rgba(255,255,255,.18);
+  --nida-bg2:rgba(242,85,127,.32); --clean-bg2:rgba(24,184,146,.32); --row-line:rgba(255,255,255,.06); --ink:#d9d4ff; --bar:rgba(30,24,58,.55); --sel-bg:rgba(255,255,255,.1); --pill-a:rgba(120,100,220,.38); --pill-b:rgba(80,60,170,.22); --pill-line:rgba(255,255,255,.18);
 }}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%}
@@ -189,15 +189,15 @@ header.top{display:flex;align-items:flex-start;justify-content:space-between;mar
 .cc.sel:not(.today) .gn{background:var(--sel-bg)}
 .cc .hf{position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:var(--clean)}
 /* Barra de abajo fija, de vidrio, con burbuja que se desliza */
-nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;padding:7px 10px calc(env(safe-area-inset-bottom) + 7px);
-  background:var(--bar);-webkit-backdrop-filter:blur(30px) saturate(200%);backdrop-filter:blur(30px) saturate(200%);
-  border-top:1px solid var(--stroke-soft);box-shadow:0 -8px 30px rgba(60,30,120,.08)}
+nav.tabs{position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom) + 6px);max-width:520px;margin:0 auto;z-index:20;display:flex;align-items:center;padding:6px 6px;
+  border-radius:34px;background:var(--bar);-webkit-backdrop-filter:blur(26px) saturate(210%);backdrop-filter:blur(26px) saturate(210%);
+  border:1px solid var(--pill-line);box-shadow:0 14px 40px rgba(60,30,120,.18),0 2px 8px rgba(60,30,120,.08),inset 0 1px 0 rgba(255,255,255,.7)}
 nav.tabs button{flex:1;height:50px;border:0;background:none;display:grid;place-items:center;color:var(--sub);cursor:pointer;position:relative;z-index:1;-webkit-tap-highlight-color:transparent;transition:color .3s}
 nav.tabs button svg{width:26px;height:26px;transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
 nav.tabs button:active svg{transform:scale(.84)}
 nav.tabs button.on{color:var(--accent)}
 nav.tabs button.on svg{transform:scale(1.1) translateY(-1px)}
-.tab-pill{position:absolute;top:7px;left:0;height:50px;border-radius:25px;z-index:0;pointer-events:none;
+.tab-pill{position:absolute;top:6px;left:0;height:50px;border-radius:26px;z-index:0;pointer-events:none;
   background:linear-gradient(180deg,var(--pill-a),var(--pill-b));border:1px solid var(--pill-line);
   box-shadow:0 8px 22px rgba(109,76,255,.18),inset 0 1px 0 rgba(255,255,255,.9),inset 0 -6px 12px rgba(109,76,255,.06);
   transition:transform .55s cubic-bezier(.34,1.45,.55,1),width .35s ease}
